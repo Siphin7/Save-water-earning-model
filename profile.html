@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AquaVita — My Profile</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Space+Mono:wght@400;700&family=Orbitron:wght@400;700;900&family=IBM+Plex+Mono:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --deep:#020d1a; --abyss:#030f20; --ocean:#0a2540;
+  --teal:#0e7c7b; --cyan:#17c3b2; --aqua:#48cae4;
+  --foam:#90e0ef; --white:#f0faff; --gold:#c9a84c;
+  --void:#03060f; --panel:#0a1628; --border:#0f2040;
+  --electric:#00b4ff; --vcyan:#00f5ff; --vaqua:#00e5cc;
+  --vgold:#ffc107; --emerald:#00e676; --ruby:#ff3d57;
+  --legendary:#ff9f43; --muted:#4a7090;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior:smooth; }
+body { background:var(--void); color:var(--white); font-family:'Cormorant Garamond',Georgia,serif; overflow-x:hidden; cursor:none; min-height:100vh; }
+body::before { content:''; position:fixed; inset:0; background:repeating-linear-gradient(0deg,rgba(0,245,255,0.01) 0px,transparent 1px,transparent 3px); pointer-events:none; z-index:9995; }
+
+.cursor { position:fixed; width:12px; height:12px; border-radius:50%; background:var(--vcyan); pointer-events:none; z-index:9999; mix-blend-mode:screen; }
+.cursor-ring { position:fixed; width:40px; height:40px; border-radius:50%; border:1px solid rgba(0,245,255,0.5); pointer-events:none; z-index:9998; transition:all 0.12s ease; }
+.ripple-circle { position:fixed; width:0; height:0; border-radius:50%; border:1px solid rgba(0,245,255,0.5); transform:translate(-50%,-50%); pointer-events:none; z-index:9994; animation:rippleOut 1s ease forwards; }
+@keyframes rippleOut { to{ width:80px; height:80px; opacity:0; } }
+#ripple-container { position:fixed; inset:0; pointer-events:none; z-index:9994; }
+
+/* NAV */
+nav { position:fixed; top:0; left:0; right:0; z-index:1000; padding:1.4rem 4rem; display:flex; justify-content:space-between; align-items:center; background:rgba(3,6,15,0.97); border-bottom:1px solid rgba(0,245,255,0.06); backdrop-filter:blur(10px); }
+.nav-logo { font-family:'Orbitron',monospace; font-size:1.1rem; letter-spacing:0.3em; color:var(--vcyan); text-shadow:0 0 15px rgba(0,245,255,0.4); text-decoration:none; font-weight:700; }
+.nav-links { display:flex; gap:2.5rem; list-style:none; }
+.nav-links a { color:var(--foam); text-decoration:none; font-family:'Space Mono',monospace; font-size:0.65rem; letter-spacing:0.2em; text-transform:uppercase; position:relative; transition:color 0.3s; opacity:0.7; }
+.nav-links a::after { content:''; position:absolute; bottom:-4px; left:0; width:0; height:1px; background:var(--vcyan); transition:width 0.3s; }
+.nav-links a:hover,.nav-links a.active { color:var(--vcyan); opacity:1; }
+.nav-links a:hover::after,.nav-links a.active::after { width:100%; }
+.nav-right { display:flex; align-items:center; gap:1rem; }
+.nav-xp-pill { display:none; align-items:center; gap:0.5rem; background:rgba(0,245,255,0.1); border:1px solid rgba(0,245,255,0.25); border-radius:100px; padding:0.4rem 1rem; font-family:'IBM Plex Mono',monospace; font-size:0.6rem; color:var(--vcyan); letter-spacing:0.1em; }
+.nav-xp-pill.visible { display:flex; }
+.xp-dot { width:5px; height:5px; border-radius:50%; background:var(--vcyan); animation:dot-pulse 2s ease infinite; }
+@keyframes dot-pulse { 0%,100%{opacity:0.4;transform:scale(1);}50%{opacity:1;transform:scale(1.3);} }
+.signout-btn { font-family:'IBM Plex Mono',monospace; font-size:0.58rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--muted); background:none; border:1px solid rgba(255,255,255,0.08); padding:0.5rem 1rem; cursor:pointer; transition:all 0.3s; }
+.signout-btn:hover { color:var(--ruby); border-color:rgba(255,61,87,0.3); }
+
+/* NO USER */
+.no-user-screen { display:none; min-height:100vh; align-items:center; justify-content:center; flex-direction:column; text-align:center; gap:2rem; padding:2rem; }
+.no-user-screen.show { display:flex; }
+.no-user-screen h2 { font-family:'Orbitron',monospace; font-size:2rem; font-weight:700; color:var(--vcyan); }
+.no-user-screen p { font-family:'IBM Plex Mono',monospace; font-size:0.65rem; color:var(--muted); letter-spacing:0.15em; }
+.no-user-screen a { font-family:'Orbitron',monospace; font-size:0.75rem; letter-spacing:0.2em; color:var(--void); background:linear-gradient(135deg,var(--vaqua),var(--electric)); border:none; padding:1rem 3rem; cursor:pointer; clip-path:polygon(10px 0%,100% 0%,calc(100% - 10px) 100%,0% 100%); text-decoration:none; transition:all 0.3s; display:inline-block; }
+
+/* PROFILE HERO */
+.profile-hero {
+  padding:120px 4rem 0;
+  position:relative; min-height:380px;
+  background:linear-gradient(180deg,rgba(0,180,255,0.06) 0%,transparent 100%);
+  display:flex; align-items:flex-end; gap:5rem;
+  border-bottom:1px solid var(--border);
+  overflow:hidden;
+}
+.profile-hero-bg { position:absolute; inset:0; pointer-events:none; }
+.avatar-3d {
+  position:relative; width:160px; height:160px; flex-shrink:0;
+  margin-bottom:-40px;
+}
+.avatar-3d-hex {
+  width:160px; height:160px;
+  background:linear-gradient(135deg,var(--electric),var(--vaqua));
+  clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);
+  display:flex; align-items:center; justify-content:center;
+  font-size:4.5rem; animation:hexBreath 3s ease infinite;
+  box-shadow:0 0 60px rgba(0,245,255,0.3);
+  position:relative; z-index:2;
+}
+@keyframes hexBreath { 0%,100%{box-shadow:0 0 40px rgba(0,245,255,0.3);}50%{box-shadow:0 0 80px rgba(0,245,255,0.5);} }
+.avatar-ring { position:absolute; border-radius:50%; border:1px solid rgba(0,245,255,0.15); animation:spinSlow linear infinite; }
+.avatar-ring-1 { width:200px; height:200px; top:-20px; left:-20px; animation-duration:12s; }
+.avatar-ring-2 { width:240px; height:240px; top:-40px; left:-40px; animation-duration:20s; animation-direction:reverse; border-color:rgba(0,229,204,0.08); }
+@keyframes spinSlow { from{transform:rotate(0deg);}to{transform:rotate(360deg);} }
+.level-badge-3d { position:absolute; bottom:-8px; right:-8px; width:42px; height:42px; background:var(--vgold); border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:'Orbitron',monospace; font-size:0.8rem; font-weight:900; color:var(--void); border:3px solid var(--void); z-index:3; box-shadow:0 0 20px rgba(255,193,7,0.5); }
+
+.profile-info { padding-bottom:3rem; flex:1; }
+.profile-name { font-family:'Orbitron',monospace; font-size:clamp(2rem,4vw,3.5rem); font-weight:900; letter-spacing:0.02em; margin-bottom:0.3rem; }
+.profile-title { font-family:'IBM Plex Mono',monospace; font-size:0.65rem; letter-spacing:0.25em; color:var(--vaqua); text-transform:uppercase; margin-bottom:1.5rem; }
+.profile-xp-bar-wrap { max-width:500px; margin-bottom:1.5rem; }
+.profile-xp-labels { display:flex; justify-content:space-between; font-family:'IBM Plex Mono',monospace; font-size:0.58rem; color:var(--muted); margin-bottom:0.4rem; }
+.profile-xp-labels span:last-child { color:var(--vgold); }
+.profile-xp-track { height:10px; background:rgba(0,245,255,0.06); border:1px solid rgba(0,245,255,0.12); position:relative; overflow:hidden; }
+.profile-xp-fill { height:100%; background:linear-gradient(90deg,var(--electric),var(--vcyan),var(--vaqua)); transition:width 1.8s cubic-bezier(0.4,0,0.2,1); box-shadow:0 0 15px var(--vcyan); }
+.profile-join-date { font-family:'IBM Plex Mono',monospace; font-size:0.58rem; color:var(--muted); letter-spacing:0.1em; }
+
+.profile-hero-stats { display:flex; gap:3rem; padding-bottom:3rem; flex-shrink:0; }
+.hero-stat { text-align:center; }
+.hero-stat-val { font-family:'Orbitron',monospace; font-size:2.2rem; font-weight:900; color:var(--vgold); line-height:1; }
+.hero-stat-key { font-family:'IBM Plex Mono',monospace; font-size:0.52rem; color:var(--muted); letter-spacing:0.15em; text-transform:uppercase; margin-top:0.4rem; }
+
+/* MAIN CONTENT */
+.profile-body { padding:4rem; display:grid; grid-template-columns:1fr 1fr; gap:3rem; }
+
+/* Cards */
+.profile-card { background:var(--panel); border:1px solid var(--border); padding:2.5rem; position:relative; overflow:hidden; }
+.profile-card::before { content:''; position:absolute; top:0; left:0; right:0; height:1px; background:linear-gradient(90deg,transparent,var(--vcyan),transparent); opacity:0.3; }
+.card-title { font-family:'Orbitron',monospace; font-size:0.65rem; letter-spacing:0.3em; color:var(--vcyan); text-transform:uppercase; margin-bottom:2rem; display:flex; align-items:center; gap:0.8rem; }
+.card-title::before { content:''; width:16px; height:1px; background:var(--vcyan); }
+
+/* QUESTS COMPLETED */
+.quest-list-prof { display:flex; flex-direction:column; gap:0.8rem; }
+.quest-row { display:flex; align-items:center; gap:1rem; padding:0.8rem 1rem; background:rgba(0,229,204,0.04); border:1px solid rgba(0,229,204,0.1); transition:all 0.3s; }
+.quest-row:hover { background:rgba(0,229,204,0.08); border-color:rgba(0,229,204,0.2); }
+.quest-check-prof { width:24px; height:24px; border-radius:50%; background:var(--vaqua); display:flex; align-items:center; justify-content:center; font-size:0.7rem; color:var(--void); font-weight:900; flex-shrink:0; }
+.quest-name-prof { font-family:'IBM Plex Mono',monospace; font-size:0.62rem; color:var(--foam); letter-spacing:0.05em; }
+.quest-empty { font-family:'IBM Plex Mono',monospace; font-size:0.6rem; color:var(--muted); letter-spacing:0.1em; text-align:center; padding:2rem; }
+
+/* BADGES */
+.badges-prof-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1.5rem; }
+.badge-prof { display:flex; flex-direction:column; align-items:center; gap:0.6rem; padding:1.5rem 1rem; background:rgba(0,0,0,0.2); border:1px solid var(--border); transition:all 0.3s; }
+.badge-prof.unlocked { background:rgba(0,245,255,0.04); border-color:rgba(0,245,255,0.2); }
+.badge-prof:hover.unlocked { background:rgba(0,245,255,0.08); }
+.badge-hex { width:60px; height:60px; clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%); display:flex; align-items:center; justify-content:center; font-size:1.8rem; filter:grayscale(1) brightness(0.25); transition:filter 0.4s; }
+.badge-prof.unlocked .badge-hex { filter:none; animation:badgePop 0.5s cubic-bezier(0.34,1.56,0.64,1) forwards; }
+@keyframes badgePop { from{transform:scale(0) rotate(-20deg);opacity:0;}to{transform:scale(1) rotate(0deg);opacity:1;} }
+.badge-prof-name { font-family:'IBM Plex Mono',monospace; font-size:0.5rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.1em; text-align:center; }
+.badge-prof.unlocked .badge-prof-name { color:var(--vaqua); }
+
+/* STATS CARD */
+.stats-prof-grid { display:grid; grid-template-columns:1fr 1fr; gap:2px; }
+.stat-prof { background:rgba(0,0,0,0.2); padding:1.5rem; text-align:center; border:1px solid rgba(255,255,255,0.04); }
+.stat-prof-val { font-family:'Orbitron',monospace; font-size:1.8rem; font-weight:700; margin-bottom:0.3rem; }
+.stat-prof-key { font-family:'IBM Plex Mono',monospace; font-size:0.52rem; color:var(--muted); letter-spacing:0.15em; text-transform:uppercase; }
+
+/* ACTIVITY HISTORY */
+.activity-list { display:flex; flex-direction:column; gap:0; }
+.activity-item { display:flex; align-items:center; gap:1.5rem; padding:1rem 0; border-bottom:1px solid rgba(255,255,255,0.04); }
+.activity-item:last-child { border-bottom:none; }
+.activity-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+.activity-text { font-family:'IBM Plex Mono',monospace; font-size:0.62rem; color:var(--foam); opacity:0.7; flex:1; letter-spacing:0.04em; }
+.activity-xp { font-family:'Orbitron',monospace; font-size:0.6rem; color:var(--vgold); white-space:nowrap; }
+.activity-date { font-family:'IBM Plex Mono',monospace; font-size:0.52rem; color:var(--muted); white-space:nowrap; }
+.activity-empty { font-family:'IBM Plex Mono',monospace; font-size:0.6rem; color:var(--muted); letter-spacing:0.1em; text-align:center; padding:2rem; }
+
+/* RANK CARD */
+.rank-prof-card { text-align:center; padding:3rem; background:linear-gradient(135deg,rgba(255,193,7,0.06),transparent); border:1px solid rgba(255,193,7,0.15); }
+.rank-prof-hex { width:120px; height:120px; margin:0 auto 1.5rem; clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%); background:linear-gradient(135deg,rgba(255,193,7,0.2),rgba(255,193,7,0.05)); display:flex; align-items:center; justify-content:center; font-size:3.5rem; animation:rankFloat 3s ease infinite; }
+@keyframes rankFloat { 0%,100%{transform:translateY(0);}50%{transform:translateY(-8px);} }
+.rank-label { font-family:'IBM Plex Mono',monospace; font-size:0.55rem; letter-spacing:0.35em; color:var(--muted); text-transform:uppercase; margin-bottom:0.5rem; }
+.rank-title-prof { font-family:'Orbitron',monospace; font-size:1.8rem; font-weight:900; color:var(--vgold); text-shadow:0 0 20px rgba(255,193,7,0.4); margin-bottom:0.5rem; }
+.rank-next { font-family:'IBM Plex Mono',monospace; font-size:0.58rem; color:var(--muted); letter-spacing:0.1em; line-height:1.8; }
+.rank-next strong { color:var(--vcyan); }
+.rank-xp-to-next { margin-top:1.5rem; }
+.rank-xp-track { height:6px; background:rgba(255,193,7,0.08); border:1px solid rgba(255,193,7,0.15); margin-bottom:0.5rem; overflow:hidden; }
+.rank-xp-fill { height:100%; background:linear-gradient(90deg,var(--vgold),var(--legendary)); transition:width 1.5s ease; }
+.rank-xp-label { font-family:'IBM Plex Mono',monospace; font-size:0.52rem; color:var(--muted); letter-spacing:0.1em; display:flex; justify-content:space-between; }
+
+/* ACTION BTNS */
+.profile-actions { padding:0 4rem 5rem; display:flex; gap:1.5rem; }
+.action-btn { font-family:'Orbitron',monospace; font-size:0.65rem; letter-spacing:0.2em; padding:0.9rem 2.5rem; border:none; cursor:pointer; transition:all 0.3s; clip-path:polygon(10px 0%,100% 0%,calc(100% - 10px) 100%,0% 100%); text-decoration:none; display:inline-block; }
+.action-btn-primary { background:linear-gradient(135deg,var(--vaqua),var(--electric)); color:var(--void); font-weight:700; }
+.action-btn-primary:hover { box-shadow:0 0 40px rgba(0,245,255,0.3); transform:translateY(-2px); }
+.action-btn-gold { background:linear-gradient(135deg,var(--vgold),var(--legendary)); color:var(--void); font-weight:700; }
+.action-btn-gold:hover { box-shadow:0 0 40px rgba(255,193,7,0.3); transform:translateY(-2px); }
+.action-btn-outline { background:transparent; color:var(--muted); border:1px solid rgba(255,255,255,0.1); clip-path:none; }
+.action-btn-outline:hover { color:var(--ruby); border-color:rgba(255,61,87,0.3); }
+
+@media (max-width:900px) {
+  nav { padding:1.2rem 1.5rem; }
+  .profile-hero { flex-direction:column; align-items:flex-start; padding:100px 1.5rem 0; }
+  .avatar-3d { margin-bottom:1rem; }
+  .profile-body { padding:2rem 1.5rem; grid-template-columns:1fr; }
+  .profile-actions { padding:0 1.5rem 3rem; flex-wrap:wrap; }
+}
+</style>
+</head>
+<body>
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursor-ring"></div>
+<div id="ripple-container"></div>
+
+<!-- NO USER STATE -->
+<div class="no-user-screen" id="no-user-screen">
+  <div style="font-size:4rem">💧</div>
+  <h2>Not Signed In</h2>
+  <p>SIGN IN TO VIEW YOUR AQUAVITA PROFILE AND TRACK YOUR XP</p>
+  <a href="index.html">← Sign In on Home Page</a>
+</div>
+
+<!-- NAV -->
+<nav>
+  <a href="index.html" class="nav-logo">⬡ AQUAVITA</a>
+  <ul class="nav-links">
+    <li><a href="about.html">About</a></li>
+    <li><a href="levels.html">Levels</a></li>
+    <li><a href="earn.html">Earn</a></li>
+    <li><a href="community.html">Community</a></li>
+    <li><a href="profile.html" class="active">My Profile</a></li>
+  </ul>
+  <div class="nav-right">
+    <div class="nav-xp-pill" id="nav-xp-pill">
+      <div class="xp-dot"></div>
+      <span id="nav-xp-count">0</span>&nbsp;XP
+    </div>
+    <button class="signout-btn" onclick="signOut()">Sign Out</button>
+  </div>
+</nav>
+
+<!-- PROFILE CONTENT (hidden if not logged in) -->
+<div id="profile-content" style="display:none">
+
+  <!-- PROFILE HERO -->
+  <div class="profile-hero">
+    <canvas class="profile-hero-bg" id="hero-canvas"></canvas>
+    <div class="avatar-3d">
+      <div class="avatar-ring avatar-ring-1"></div>
+      <div class="avatar-ring avatar-ring-2"></div>
+      <div class="avatar-3d-hex" id="avatar-emoji">💧</div>
+      <div class="level-badge-3d" id="level-badge">1</div>
+    </div>
+    <div class="profile-info">
+      <div class="profile-name" id="profile-name">—</div>
+      <div class="profile-title" id="profile-rank-title">▸ Rank I — Initiate</div>
+      <div class="profile-xp-bar-wrap">
+        <div class="profile-xp-labels">
+          <span>LEVEL <span id="prof-level">1</span> PROGRESS</span>
+          <span id="prof-xp-text">0 / 500 XP</span>
+        </div>
+        <div class="profile-xp-track">
+          <div class="profile-xp-fill" id="prof-xp-fill" style="width:0%"></div>
+        </div>
+      </div>
+      <div class="profile-join-date" id="join-date">MEMBER SINCE TODAY</div>
+    </div>
+    <div class="profile-hero-stats">
+      <div class="hero-stat">
+        <div class="hero-stat-val" id="total-xp-disp">0</div>
+        <div class="hero-stat-key">Total XP</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-val" id="quests-disp">0</div>
+        <div class="hero-stat-key">Quests Done</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-val" id="water-disp">0</div>
+        <div class="hero-stat-key">Litres Saved</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BODY GRID -->
+  <div class="profile-body">
+
+    <!-- COMPLETED QUESTS -->
+    <div class="profile-card">
+      <div class="card-title">Completed Quests</div>
+      <div class="quest-list-prof" id="quests-list">
+        <div class="quest-empty">No quests completed yet.<br>Visit Levels to start your journey.</div>
+      </div>
+    </div>
+
+    <!-- RANK CARD -->
+    <div class="rank-prof-card">
+      <div class="rank-prof-hex" id="rank-emoji">🌊</div>
+      <div class="rank-label">CURRENT RANK</div>
+      <div class="rank-title-prof" id="rank-name-disp">Initiate</div>
+      <div class="rank-next">
+        <strong id="xp-to-next">500 XP</strong> needed for next rank
+      </div>
+      <div class="rank-xp-to-next">
+        <div class="rank-xp-track">
+          <div class="rank-xp-fill" id="rank-xp-fill" style="width:0%"></div>
+        </div>
+        <div class="rank-xp-label">
+          <span id="rank-cur-xp">0 XP</span>
+          <span id="rank-max-xp">500 XP</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- BADGES -->
+    <div class="profile-card">
+      <div class="card-title">Badges Earned</div>
+      <div class="badges-prof-grid">
+        <div class="badge-prof" id="badge-shower">
+          <div class="badge-hex" style="background:linear-gradient(135deg,#0a3d62,#0052cc)">🚿</div>
+          <div class="badge-prof-name">Shower Saver</div>
+        </div>
+        <div class="badge-prof" id="badge-fixer">
+          <div class="badge-hex" style="background:linear-gradient(135deg,#1a5276,#2e86c1)">🔧</div>
+          <div class="badge-prof-name">Leak Fixer</div>
+        </div>
+        <div class="badge-prof" id="badge-gardener">
+          <div class="badge-hex" style="background:linear-gradient(135deg,#145a32,#1e8449)">🌿</div>
+          <div class="badge-prof-name">Garden Whisperer</div>
+        </div>
+        <div class="badge-prof" id="badge-rainmaster">
+          <div class="badge-hex" style="background:linear-gradient(135deg,#1b2631,#2e4057)">🌧️</div>
+          <div class="badge-prof-name">Rain Master</div>
+        </div>
+        <div class="badge-prof" id="badge-foodhero">
+          <div class="badge-hex" style="background:linear-gradient(135deg,#4a235a,#7d3c98)">🥗</div>
+          <div class="badge-prof-name">Food Hero</div>
+        </div>
+        <div class="badge-prof" id="badge-legend">
+          <div class="badge-hex" style="background:linear-gradient(135deg,#7d6608,#d4ac0d)">⭐</div>
+          <div class="badge-prof-name">Legend</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STATS -->
+    <div class="profile-card">
+      <div class="card-title">Your Impact Stats</div>
+      <div class="stats-prof-grid">
+        <div class="stat-prof">
+          <div class="stat-prof-val" id="stat-total-xp" style="color:var(--vgold)">0</div>
+          <div class="stat-prof-key">Total XP Earned</div>
+        </div>
+        <div class="stat-prof">
+          <div class="stat-prof-val" id="stat-water-k" style="color:var(--vcyan)">0</div>
+          <div class="stat-prof-key">Litres Saved / yr</div>
+        </div>
+        <div class="stat-prof">
+          <div class="stat-prof-val" id="stat-badges-n" style="color:var(--vaqua)">0</div>
+          <div class="stat-prof-key">Badges Unlocked</div>
+        </div>
+        <div class="stat-prof">
+          <div class="stat-prof-val" id="stat-quests-n" style="color:var(--emerald)">0</div>
+          <div class="stat-prof-key">Quests Completed</div>
+        </div>
+        <div class="stat-prof">
+          <div class="stat-prof-val" id="stat-streak" style="color:var(--legendary)">1</div>
+          <div class="stat-prof-key">Day Streak</div>
+        </div>
+        <div class="stat-prof">
+          <div class="stat-prof-val" id="stat-pledges" style="color:var(--ruby)">0</div>
+          <div class="stat-prof-key">Pledges Sworn</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ACTIVITY -->
+    <div class="profile-card" style="grid-column:1/-1">
+      <div class="card-title">Activity History</div>
+      <div class="activity-list" id="activity-list">
+        <div class="activity-empty">No activity yet. Start your journey on the Levels page!</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ACTIONS -->
+  <div class="profile-actions">
+    <a href="levels.html" class="action-btn action-btn-primary">⚡ Go to Levels</a>
+    <a href="earn.html" class="action-btn action-btn-gold">💰 Redeem XP</a>
+    <button class="action-btn action-btn-outline" onclick="signOut()">Sign Out</button>
+  </div>
+
+</div><!-- end profile-content -->
+
+<script>
+const ranks = [
+  { title:'Initiate', emoji:'🌊', threshold:0 },
+  { title:'Conservationist', emoji:'💧', threshold:500 },
+  { title:'Guardian', emoji:'🌿', threshold:1000 },
+  { title:'Protector', emoji:'🔱', threshold:2000 },
+  { title:'Legend', emoji:'⭐', threshold:4000 }
+];
+const questXpMap = {
+  '5-Minute Shower Challenge': 80,
+  'Zero Leak Protocol': 150,
+  'Garden Whisperer': 100,
+  'Rain Harvester': 120,
+  'Plant-Powered Diet': 200,
+  'Water Ambassador': 350
+};
+const questWaterMap = {
+  '5-Minute Shower Challenge': 3650,
+  'Zero Leak Protocol': 15000,
+  'Garden Whisperer': 12000,
+  'Rain Harvester': 15600,
+  'Plant-Powered Diet': 100000,
+  'Water Ambassador': 50000
+};
+
+function loadUser() { try { return JSON.parse(localStorage.getItem('aq_user')) || null; } catch { return null; } }
+function loadProgress() { try { return JSON.parse(localStorage.getItem('aq_progress')) || { xp:0, level:1, totalWater:0, completedQuests:[], badges:[], streak:1, history:[] }; } catch { return { xp:0 }; } }
+function getCurrentRank(xp) { return [...ranks].reverse().find(r => xp >= r.threshold) || ranks[0]; }
+function getNextRank(xp) { return ranks.find(r => r.threshold > xp) || null; }
+function toRoman(n) { return ['I','II','III','IV','V'][n-1] || n; }
+
+function signOut() {
+  if (confirm('Sign out of AquaVita? Your progress will be saved.')) {
+    const user = loadUser();
+    if (user) { user.isLoggedIn = false; localStorage.setItem('aq_user', JSON.stringify(user)); }
+    window.location.href = 'index.html';
+  }
+}
+
+function renderProfile() {
+  const user = loadUser();
+  const p = loadProgress();
+  if (!user || !user.isLoggedIn) {
+    document.getElementById('no-user-screen').classList.add('show');
+    return;
+  }
+  document.getElementById('profile-content').style.display = 'block';
+  document.getElementById('nav-xp-pill').classList.add('visible');
+  document.getElementById('nav-xp-count').textContent = (p.xp || 0).toLocaleString();
+
+  const xp = p.xp || 0;
+  const level = p.level || 1;
+  const quests = p.completedQuests || [];
+  const badges = p.badges || [];
+  const history = p.history || [];
+  const totalWater = p.totalWater || 0;
+
+  // Avatar emoji based on level
+  const avatarEmojis = ['💧','🌊','🔱','⭐','👑'];
+  document.getElementById('avatar-emoji').textContent = avatarEmojis[Math.min(level - 1, 4)];
+  document.getElementById('level-badge').textContent = level;
+  document.getElementById('profile-name').textContent = user.name;
+  const rank = getCurrentRank(xp);
+  const nextRank = getNextRank(xp);
+  document.getElementById('profile-rank-title').textContent = `▸ Rank ${toRoman(level)} — ${rank.title}`;
+
+  // XP bar
+  const XP_PER_LEVEL = 500;
+  const pct = Math.min(((xp % XP_PER_LEVEL) / XP_PER_LEVEL) * 100, 100);
+  document.getElementById('prof-xp-fill').style.width = pct + '%';
+  document.getElementById('prof-level').textContent = level;
+  document.getElementById('prof-xp-text').textContent = `${xp % XP_PER_LEVEL} / ${XP_PER_LEVEL} XP`;
+
+  // Join date
+  if (user.joinDate) {
+    const d = new Date(user.joinDate);
+    document.getElementById('join-date').textContent = 'MEMBER SINCE ' + d.toLocaleDateString('en-IN', { year:'numeric', month:'long', day:'numeric' }).toUpperCase();
+  }
+
+  // Hero stats
+  animCount(document.getElementById('total-xp-disp'), xp);
+  animCount(document.getElementById('quests-disp'), quests.length);
+  const waterK = totalWater >= 1000 ? (totalWater/1000).toFixed(1) + 'K' : totalWater + '';
+  document.getElementById('water-disp').textContent = waterK;
+
+  // Big stats
+  document.getElementById('stat-total-xp').textContent = xp.toLocaleString();
+  document.getElementById('stat-water-k').textContent = totalWater >= 1000 ? Math.floor(totalWater/1000)+'K L' : totalWater+'L';
+  document.getElementById('stat-badges-n').textContent = badges.length;
+  document.getElementById('stat-quests-n').textContent = quests.length;
+  document.getElementById('stat-streak').textContent = p.streak || 1;
+  document.getElementById('stat-pledges').textContent = history.length;
+
+  // Rank card
+  document.getElementById('rank-emoji').textContent = rank.emoji;
+  document.getElementById('rank-name-disp').textContent = rank.title;
+  if (nextRank) {
+    const needed = nextRank.threshold - xp;
+    document.getElementById('xp-to-next').textContent = needed.toLocaleString() + ' XP';
+    const rankPct = Math.min(((xp - rank.threshold) / (nextRank.threshold - rank.threshold)) * 100, 100);
+    document.getElementById('rank-xp-fill').style.width = rankPct + '%';
+    document.getElementById('rank-cur-xp').textContent = xp + ' XP';
+    document.getElementById('rank-max-xp').textContent = nextRank.threshold + ' XP';
+  } else {
+    document.getElementById('xp-to-next').textContent = '0 XP';
+    document.getElementById('rank-xp-fill').style.width = '100%';
+    document.getElementById('xp-to-next').parentElement.innerHTML = '<strong style="color:var(--vgold)">MAX RANK ACHIEVED ⭐</strong>';
+  }
+
+  // Quests list
+  const questsEl = document.getElementById('quests-list');
+  if (quests.length === 0) {
+    questsEl.innerHTML = '<div class="quest-empty">No quests completed yet.<br>Visit <a href="levels.html" style="color:var(--vaqua)">Levels</a> to start your journey.</div>';
+  } else {
+    const icons = { '5-Minute Shower Challenge':'🚿', 'Zero Leak Protocol':'🔧', 'Garden Whisperer':'🌿', 'Rain Harvester':'🌧️', 'Plant-Powered Diet':'🥗', 'Water Ambassador':'⭐' };
+    questsEl.innerHTML = quests.map(q => `
+      <div class="quest-row">
+        <div class="quest-check-prof">✓</div>
+        <div>
+          <div class="quest-name-prof">${icons[q]||'💧'} ${q}</div>
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:0.52rem;color:var(--muted);margin-top:0.2rem">+${questXpMap[q]||0} XP · ${questWaterMap[q]?Math.floor(questWaterMap[q]/1000)+'K L saved':''}</div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  // Badges
+  badges.forEach(b => {
+    const el = document.getElementById('badge-' + b);
+    if (el) el.classList.add('unlocked');
+  });
+
+  // Activity history
+  const actEl = document.getElementById('activity-list');
+  if (history.length === 0) {
+    actEl.innerHTML = '<div class="activity-empty">No activity yet. Start your journey on the Levels page!</div>';
+  } else {
+    const colors = ['var(--vcyan)','var(--vgold)','var(--emerald)','var(--vaqua)','var(--legendary)'];
+    actEl.innerHTML = history.slice().reverse().map((h, i) => {
+      const d = new Date(h.date);
+      return `<div class="activity-item">
+        <div class="activity-dot" style="background:${colors[i%colors.length]}"></div>
+        <div class="activity-text">Completed ${h.quests} quest${h.quests>1?'s':''} — saved ${h.water >= 1000 ? Math.floor(h.water/1000)+'K' : h.water}L of water</div>
+        <div class="activity-xp">+${h.xp.toLocaleString()} XP</div>
+        <div class="activity-date">${d.toLocaleDateString('en-IN')}</div>
+      </div>`;
+    }).join('');
+  }
+}
+
+function animCount(el, target) {
+  let start = 0, duration = 1500, startTime = null;
+  function step(ts) {
+    if (!startTime) startTime = ts;
+    const p = Math.min((ts - startTime) / duration, 1);
+    const ease = 1 - Math.pow(1 - p, 3);
+    el.textContent = Math.floor(ease * target).toLocaleString();
+    if (p < 1) requestAnimationFrame(step);
+    else el.textContent = target.toLocaleString();
+  }
+  requestAnimationFrame(step);
+}
+
+// CURSOR
+const cursor = document.getElementById('cursor');
+const cursorRing = document.getElementById('cursor-ring');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove', e => { mx=e.clientX; my=e.clientY; cursor.style.left=mx+'px'; cursor.style.top=my+'px'; });
+function animRing() { rx+=(mx-rx)*0.12; ry+=(my-ry)*0.12; cursorRing.style.left=(rx-20)+'px'; cursorRing.style.top=(ry-20)+'px'; requestAnimationFrame(animRing); }
+animRing();
+document.addEventListener('click', e => {
+  const r = document.createElement('div'); r.className='ripple-circle';
+  r.style.left=e.clientX+'px'; r.style.top=e.clientY+'px';
+  document.getElementById('ripple-container').appendChild(r);
+  setTimeout(()=>r.remove(), 1000);
+});
+
+// HERO BG CANVAS
+(function() {
+  const c = document.getElementById('hero-canvas');
+  if (!c) return;
+  c.width=window.innerWidth; c.height=400;
+  const ctx = c.getContext('2d');
+  const particles = [];
+  for (let i=0;i<50;i++) particles.push({ x:Math.random()*c.width, y:Math.random()*c.height, vx:(Math.random()-.5)*0.3, vy:(Math.random()-.5)*0.3, r:Math.random()*2+0.3, alpha:Math.random()*0.2+0.03 });
+  function draw() {
+    ctx.clearRect(0,0,c.width,c.height);
+    for (let p of particles) {
+      p.x+=p.vx; p.y+=p.vy;
+      if(p.x<0)p.x=c.width; if(p.x>c.width)p.x=0; if(p.y<0)p.y=c.height; if(p.y>c.height)p.y=0;
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(0,245,255,${p.alpha})`; ctx.fill();
+    }
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+renderProfile();
+</script>
+</body>
+</html>

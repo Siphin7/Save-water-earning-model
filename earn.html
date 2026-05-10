@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AquaVita — Earn & Redeem</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Space+Mono:wght@400;700&family=Orbitron:wght@400;700;900&family=IBM+Plex+Mono:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --deep:#020d1a; --abyss:#030f20; --ocean:#0a2540;
+  --teal:#0e7c7b; --cyan:#17c3b2; --aqua:#48cae4;
+  --foam:#90e0ef; --white:#f0faff; --gold:#c9a84c;
+  --void:#03060f; --panel:#0a1628; --border:#0f2040;
+  --electric:#00b4ff; --vcyan:#00f5ff; --vaqua:#00e5cc;
+  --vgold:#ffc107; --emerald:#00e676; --ruby:#ff3d57;
+  --legendary:#ff9f43; --muted:#4a7090;
+  --gpay-blue:#4285F4; --gpay-green:#34A853;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior:smooth; }
+body { background:var(--void); color:var(--white); font-family:'Cormorant Garamond',Georgia,serif; overflow-x:hidden; cursor:none; min-height:100vh; }
+body::before { content:''; position:fixed; inset:0; background:repeating-linear-gradient(0deg,rgba(0,245,255,0.01) 0px,transparent 1px,transparent 3px); pointer-events:none; z-index:9995; }
+
+/* CURSOR */
+.cursor { position:fixed; width:12px; height:12px; border-radius:50%; background:var(--vgold); pointer-events:none; z-index:9999; mix-blend-mode:screen; }
+.cursor-ring { position:fixed; width:40px; height:40px; border-radius:50%; border:1px solid rgba(255,193,7,0.5); pointer-events:none; z-index:9998; transition:all 0.12s ease; }
+.ripple-circle { position:fixed; width:0; height:0; border-radius:50%; border:1px solid rgba(255,193,7,0.4); transform:translate(-50%,-50%); pointer-events:none; z-index:9994; animation:rippleOut 1s ease forwards; }
+@keyframes rippleOut { to { width:80px; height:80px; opacity:0; } }
+#ripple-container { position:fixed; inset:0; pointer-events:none; z-index:9994; }
+#progress-bar { position:fixed; top:0; left:0; height:2px; background:linear-gradient(90deg,var(--vgold),var(--vaqua)); z-index:1001; transition:width 0.1s; }
+
+/* NAV */
+nav { position:fixed; top:0; left:0; right:0; z-index:1000; padding:1.4rem 4rem; display:flex; justify-content:space-between; align-items:center; background:rgba(3,6,15,0.97); border-bottom:1px solid rgba(255,193,7,0.06); backdrop-filter:blur(10px); }
+.nav-logo { font-family:'Orbitron',monospace; font-size:1.1rem; letter-spacing:0.3em; color:var(--vcyan); text-shadow:0 0 15px rgba(0,245,255,0.4); text-decoration:none; font-weight:700; }
+.nav-links { display:flex; gap:2.5rem; list-style:none; }
+.nav-links a { color:var(--foam); text-decoration:none; font-family:'Space Mono',monospace; font-size:0.65rem; letter-spacing:0.2em; text-transform:uppercase; position:relative; transition:color 0.3s; opacity:0.7; }
+.nav-links a::after { content:''; position:absolute; bottom:-4px; left:0; width:0; height:1px; background:var(--vgold); transition:width 0.3s; }
+.nav-links a:hover,.nav-links a.active { color:var(--vgold); opacity:1; }
+.nav-links a:hover::after,.nav-links a.active::after { width:100%; }
+.nav-right { display:flex; align-items:center; gap:1.2rem; }
+.nav-xp-pill { display:none; align-items:center; gap:0.5rem; background:rgba(255,193,7,0.1); border:1px solid rgba(255,193,7,0.25); border-radius:100px; padding:0.4rem 1rem; font-family:'IBM Plex Mono',monospace; font-size:0.6rem; color:var(--vgold); letter-spacing:0.1em; }
+.nav-xp-pill.visible { display:flex; }
+.xp-dot { width:5px; height:5px; border-radius:50%; background:var(--vgold); animation:dot-pulse 2s ease infinite; }
+@keyframes dot-pulse { 0%,100%{opacity:0.4;transform:scale(1);}50%{opacity:1;transform:scale(1.3);} }
+.nav-signin-btn { font-family:'IBM Plex Mono',monospace; font-size:0.6rem; letter-spacing:0.15em; text-transform:uppercase; color:var(--void); background:var(--vgold); border:none; padding:0.55rem 1.2rem; cursor:pointer; transition:all 0.3s; clip-path:polygon(8px 0%,100% 0%,calc(100% - 8px) 100%,0% 100%); }
+.nav-signin-btn:hover { background:var(--legendary); }
+.nav-signin-btn.signed-in { background:transparent; color:var(--foam); border:1px solid rgba(255,193,7,0.2); clip-path:none; }
+
+/* PAGE HERO */
+.page-hero {
+  padding: 140px 4rem 6rem;
+  position: relative; overflow: hidden;
+  background: linear-gradient(180deg, var(--void) 0%, rgba(10,37,64,0.3) 100%);
+}
+.page-hero-canvas { position:absolute; inset:0; pointer-events:none; }
+.page-hero-content { position:relative; z-index:2; }
+.page-hero-label { font-family:'IBM Plex Mono',monospace; font-size:0.6rem; letter-spacing:0.5em; color:var(--vgold); text-transform:uppercase; margin-bottom:1.5rem; display:flex; align-items:center; gap:0.8rem; }
+.page-hero-label::before { content:''; width:30px; height:1px; background:var(--vgold); }
+.page-hero-title { font-family:'Orbitron',monospace; font-size:clamp(3rem,7vw,6rem); font-weight:900; line-height:0.9; margin-bottom:1.5rem; }
+.page-hero-title .accent { background:linear-gradient(135deg,var(--vgold),var(--legendary)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+.page-hero-sub { font-size:1.3rem; color:var(--foam); opacity:0.7; max-width:540px; line-height:1.7; font-weight:300; }
+
+/* XP BALANCE CARD */
+.balance-section { padding:0 4rem 5rem; }
+.balance-card {
+  background:linear-gradient(135deg,rgba(255,193,7,0.08),rgba(255,193,7,0.03));
+  border:1px solid rgba(255,193,7,0.2);
+  padding:3rem 4rem;
+  display:grid; grid-template-columns:1fr 1fr 1fr;
+  gap:3rem; align-items:center;
+  position:relative; overflow:hidden;
+}
+.balance-card::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg,transparent,var(--vgold),transparent); }
+.balance-card::after { content:''; position:absolute; inset:0; background:radial-gradient(circle at 10% 50%,rgba(255,193,7,0.05),transparent 60%); pointer-events:none; }
+.balance-label { font-family:'IBM Plex Mono',monospace; font-size:0.6rem; letter-spacing:0.4em; color:var(--muted); text-transform:uppercase; margin-bottom:1rem; }
+.balance-xp-num { font-family:'Orbitron',monospace; font-size:4.5rem; font-weight:900; color:var(--vgold); text-shadow:0 0 30px rgba(255,193,7,0.4); line-height:1; }
+.balance-xp-sub { font-family:'Space Mono',monospace; font-size:0.65rem; color:var(--muted); letter-spacing:0.15em; margin-top:0.5rem; }
+.balance-value { text-align:center; }
+.balance-equals { font-family:'Orbitron',monospace; font-size:2rem; color:rgba(255,193,7,0.3); text-align:center; }
+.balance-inr-num { font-family:'Orbitron',monospace; font-size:3.5rem; font-weight:900; color:var(--emerald); text-shadow:0 0 20px rgba(0,230,118,0.3); }
+.balance-inr-sub { font-family:'Space Mono',monospace; font-size:0.6rem; color:var(--muted); letter-spacing:0.1em; margin-top:0.5rem; }
+.balance-rate { text-align:right; }
+.rate-display { font-family:'IBM Plex Mono',monospace; font-size:0.65rem; color:var(--muted); letter-spacing:0.1em; line-height:2; }
+.rate-display strong { color:var(--vaqua); }
+
+/* REDEEM TIERS */
+.tiers-section { padding:0 4rem 5rem; }
+.section-header { margin-bottom:3rem; }
+.section-header h2 { font-family:'Orbitron',monospace; font-size:1.6rem; font-weight:700; letter-spacing:0.05em; margin-bottom:0.5rem; }
+.section-header p { font-family:'IBM Plex Mono',monospace; font-size:0.62rem; color:var(--muted); letter-spacing:0.1em; }
+
+.tiers-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:2px; }
+.tier-card {
+  background:var(--panel); border:1px solid var(--border);
+  padding:2.5rem 2rem; position:relative; cursor:pointer;
+  transition:all 0.3s ease; overflow:hidden;
+}
+.tier-card::before { content:''; position:absolute; top:0; left:0; width:100%; height:2px; background:var(--tier-color,var(--border)); transform:scaleX(0); transform-origin:left; transition:transform 0.4s ease; }
+.tier-card:hover::before { transform:scaleX(1); }
+.tier-card:hover { border-color:rgba(255,193,7,0.2); background:rgba(255,193,7,0.04); transform:translateY(-4px); }
+.tier-card.active-tier { border-color:var(--tier-color); background:rgba(255,193,7,0.05); }
+.tier-card.active-tier::before { transform:scaleX(1); }
+.tier-card.locked { opacity:0.4; cursor:not-allowed; }
+.tier-card.locked:hover { transform:none; }
+.tier-icon { font-size:2rem; margin-bottom:1rem; display:block; }
+.tier-name { font-family:'Orbitron',monospace; font-size:0.75rem; letter-spacing:0.2em; margin-bottom:0.8rem; }
+.tier-xp { font-family:'IBM Plex Mono',monospace; font-size:0.65rem; color:var(--muted); letter-spacing:0.1em; margin-bottom:1.5rem; }
+.tier-amount { font-family:'Orbitron',monospace; font-size:2rem; font-weight:900; margin-bottom:0.3rem; }
+.tier-inr { font-family:'IBM Plex Mono',monospace; font-size:0.6rem; color:var(--emerald); letter-spacing:0.1em; }
+.tier-lock-msg { font-family:'IBM Plex Mono',monospace; font-size:0.55rem; color:var(--muted); margin-top:1rem; letter-spacing:0.05em; }
+.tier-select-btn {
+  width:100%; margin-top:1.5rem; padding:0.7rem;
+  font-family:'IBM Plex Mono',monospace; font-size:0.6rem; letter-spacing:0.15em;
+  text-transform:uppercase; border:none; cursor:pointer; transition:all 0.3s;
+  background:rgba(255,193,7,0.12); color:var(--vgold); border:1px solid rgba(255,193,7,0.2);
+}
+.tier-select-btn:hover { background:rgba(255,193,7,0.2); }
+.tier-card.locked .tier-select-btn { cursor:not-allowed; opacity:0.4; }
+
+/* GPAY SECTION */
+.gpay-section { padding:0 4rem 5rem; }
+.gpay-panel {
+  background:linear-gradient(135deg,rgba(66,133,244,0.08),rgba(52,168,83,0.05));
+  border:1px solid rgba(66,133,244,0.2);
+  padding:3rem 4rem; position:relative; overflow:hidden;
+}
+.gpay-panel::before { content:''; position:absolute; top:0; left:0; right:0; height:1px; background:linear-gradient(90deg,transparent,var(--gpay-blue),var(--gpay-green),transparent); }
+.gpay-inner { display:grid; grid-template-columns:1fr 1fr; gap:5rem; align-items:center; }
+.gpay-info h3 { font-family:'Orbitron',monospace; font-size:1.5rem; font-weight:700; margin-bottom:1rem; }
+.gpay-info p { font-size:1.1rem; color:var(--foam); opacity:0.7; line-height:1.8; font-weight:300; margin-bottom:1.5rem; }
+.gpay-steps { list-style:none; }
+.gpay-steps li { font-family:'IBM Plex Mono',monospace; font-size:0.62rem; color:var(--muted); letter-spacing:0.05em; padding:0.6rem 0; border-bottom:1px solid rgba(255,255,255,0.04); display:flex; align-items:center; gap:0.8rem; }
+.gpay-steps li::before { content:attr(data-step); font-family:'Orbitron',monospace; font-size:0.55rem; color:var(--vcyan); background:rgba(0,245,255,0.1); border:1px solid rgba(0,245,255,0.2); width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.gpay-form { }
+.gpay-logo-area {
+  display:flex; align-items:center; gap:1rem; margin-bottom:2rem;
+  padding:1.5rem 2rem; background:rgba(255,255,255,0.03);
+  border:1px solid rgba(255,255,255,0.07);
+}
+.gpay-logo { font-family:'Orbitron',monospace; font-size:1.5rem; font-weight:900; }
+.gpay-logo-g { color:#4285F4; } .gpay-logo-o1 { color:#EA4335; } .gpay-logo-o2 { color:#FBBC04; } .gpay-logo-gl { color:#34A853; } .gpay-logo-e { color:#EA4335; }
+.gpay-logo-pay { color:var(--white); margin-left:0.3rem; font-size:1rem; opacity:0.8; }
+.gpay-tagline { font-family:'IBM Plex Mono',monospace; font-size:0.55rem; color:var(--muted); letter-spacing:0.15em; }
+
+.form-field { margin-bottom:1.2rem; }
+.form-field label { display:block; font-family:'IBM Plex Mono',monospace; font-size:0.55rem; letter-spacing:0.2em; color:var(--muted); text-transform:uppercase; margin-bottom:0.5rem; }
+.form-field input, .form-field select {
+  width:100%; padding:0.85rem 1rem;
+  background:rgba(10,37,64,0.9); border:1px solid rgba(255,255,255,0.08);
+  color:var(--white); font-family:'IBM Plex Mono',monospace; font-size:0.7rem;
+  outline:none; transition:border-color 0.3s; letter-spacing:0.05em;
+}
+.form-field input::placeholder { color:rgba(144,224,239,0.2); }
+.form-field input:focus,.form-field select:focus { border-color:rgba(66,133,244,0.5); }
+.form-field select option { background:var(--panel); }
+
+.redeem-summary { background:rgba(0,0,0,0.3); border:1px solid rgba(255,193,7,0.15); padding:1.2rem 1.5rem; margin-bottom:1.5rem; }
+.redeem-row { display:flex; justify-content:space-between; align-items:center; padding:0.4rem 0; font-family:'IBM Plex Mono',monospace; font-size:0.62rem; color:var(--muted); letter-spacing:0.05em; }
+.redeem-row:last-child { border-top:1px solid rgba(255,255,255,0.05); padding-top:0.8rem; margin-top:0.4rem; }
+.redeem-row span:last-child { color:var(--white); }
+.redeem-row.total span:last-child { color:var(--emerald); font-family:'Orbitron',monospace; font-size:0.8rem; font-weight:700; }
+
+.gpay-btn {
+  width:100%; padding:1.1rem;
+  font-family:'Orbitron',monospace; font-size:0.75rem; font-weight:700;
+  letter-spacing:0.2em; color:white; border:none; cursor:pointer;
+  background:linear-gradient(135deg,#4285F4,#34A853);
+  transition:all 0.3s; position:relative; overflow:hidden;
+  box-shadow:0 0 30px rgba(66,133,244,0.3);
+}
+.gpay-btn:hover { box-shadow:0 0 60px rgba(66,133,244,0.5); transform:translateY(-2px); }
+.gpay-btn:disabled { opacity:0.4; cursor:not-allowed; transform:none; box-shadow:none; }
+.gpay-btn::before { content:''; position:absolute; top:-50%; left:-60%; width:40%; height:200%; background:rgba(255,255,255,0.15); transform:skewX(-20deg); animation:btnShine 3s ease infinite; }
+@keyframes btnShine { 0%{left:-60%;opacity:0;}30%{opacity:1;}60%{left:130%;opacity:0;}100%{left:130%;} }
+
+/* GPAY MODAL */
+.gpay-modal-overlay { position:fixed; inset:0; z-index:10000; background:rgba(3,6,15,0.95); backdrop-filter:blur(15px); display:flex; align-items:center; justify-content:center; opacity:0; pointer-events:none; transition:opacity 0.3s; }
+.gpay-modal-overlay.open { opacity:1; pointer-events:all; }
+.gpay-modal-box {
+  background:#1a1a2e; border:1px solid rgba(66,133,244,0.3);
+  padding:3rem; max-width:420px; width:90%;
+  transform:translateY(20px) scale(0.97); transition:transform 0.4s cubic-bezier(0.34,1.56,0.64,1);
+  text-align:center; position:relative;
+  box-shadow:0 0 80px rgba(66,133,244,0.2);
+}
+.gpay-modal-overlay.open .gpay-modal-box { transform:translateY(0) scale(1); }
+.gpay-modal-logo { font-family:'Orbitron',monospace; font-size:2rem; font-weight:900; margin-bottom:2rem; }
+.gpay-modal-amount { font-family:'Orbitron',monospace; font-size:3.5rem; font-weight:900; color:var(--emerald); margin-bottom:0.5rem; text-shadow:0 0 20px rgba(0,230,118,0.4); }
+.gpay-modal-sub { font-family:'IBM Plex Mono',monospace; font-size:0.6rem; color:var(--muted); letter-spacing:0.15em; margin-bottom:2rem; }
+.gpay-modal-upi { background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); padding:1rem; margin-bottom:2rem; font-family:'IBM Plex Mono',monospace; font-size:0.7rem; color:var(--foam); letter-spacing:0.1em; }
+.gpay-modal-steps { text-align:left; margin-bottom:2rem; }
+.gpay-modal-step { font-family:'IBM Plex Mono',monospace; font-size:0.6rem; color:var(--muted); padding:0.5rem 0; display:flex; gap:0.8rem; align-items:center; }
+.step-num { width:20px; height:20px; border-radius:50%; background:rgba(66,133,244,0.2); border:1px solid rgba(66,133,244,0.3); display:flex; align-items:center; justify-content:center; font-size:0.55rem; color:#4285F4; flex-shrink:0; }
+.gpay-confirm-btn { width:100%; padding:1rem; background:linear-gradient(135deg,#4285F4,#34A853); color:white; font-family:'Orbitron',monospace; font-size:0.7rem; font-weight:700; letter-spacing:0.2em; border:none; cursor:pointer; transition:all 0.3s; }
+.gpay-confirm-btn:hover { transform:translateY(-1px); box-shadow:0 10px 30px rgba(66,133,244,0.4); }
+.gpay-cancel-btn { background:none; border:none; color:var(--muted); font-family:'IBM Plex Mono',monospace; font-size:0.6rem; cursor:pointer; margin-top:1rem; display:block; width:100%; letter-spacing:0.1em; transition:color 0.3s; }
+.gpay-cancel-btn:hover { color:var(--foam); }
+
+/* SUCCESS STATE */
+.success-overlay { position:fixed; inset:0; z-index:10001; background:rgba(3,6,15,0.97); display:none; align-items:center; justify-content:center; flex-direction:column; text-align:center; }
+.success-overlay.show { display:flex; }
+.success-icon { font-size:5rem; margin-bottom:2rem; animation:successPop 0.6s cubic-bezier(0.34,1.56,0.64,1); }
+@keyframes successPop { from{transform:scale(0) rotate(-20deg);opacity:0;} to{transform:scale(1) rotate(0deg);opacity:1;} }
+.success-title { font-family:'Orbitron',monospace; font-size:2.5rem; font-weight:900; color:var(--emerald); margin-bottom:1rem; text-shadow:0 0 30px rgba(0,230,118,0.4); }
+.success-sub { font-family:'IBM Plex Mono',monospace; font-size:0.7rem; color:var(--muted); letter-spacing:0.1em; margin-bottom:3rem; line-height:2; }
+.success-back-btn { font-family:'Orbitron',monospace; font-size:0.7rem; letter-spacing:0.2em; color:var(--void); background:linear-gradient(135deg,var(--vaqua),var(--electric)); border:none; padding:1rem 3rem; cursor:pointer; clip-path:polygon(10px 0%,100% 0%,calc(100% - 10px) 100%,0% 100%); transition:all 0.3s; }
+
+/* HISTORY SECTION */
+.history-section { padding:0 4rem 6rem; }
+.history-table { width:100%; border-collapse:collapse; }
+.history-table th { font-family:'IBM Plex Mono',monospace; font-size:0.55rem; letter-spacing:0.25em; color:var(--muted); text-transform:uppercase; padding:0.8rem 1.2rem; text-align:left; border-bottom:1px solid var(--border); }
+.history-table td { padding:1rem 1.2rem; font-family:'IBM Plex Mono',monospace; font-size:0.65rem; color:var(--foam); opacity:0.7; border-bottom:1px solid rgba(255,255,255,0.03); }
+.history-table tr:hover td { opacity:1; background:rgba(255,193,7,0.02); }
+.history-empty { text-align:center; padding:3rem; font-family:'IBM Plex Mono',monospace; font-size:0.65rem; color:var(--muted); letter-spacing:0.15em; }
+
+/* ANIMATIONS */
+@keyframes fadeUp { from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);} }
+
+/* NO USER STATE */
+.no-user-banner { padding:3rem 4rem; background:rgba(255,61,87,0.05); border:1px solid rgba(255,61,87,0.15); margin:0 4rem 3rem; text-align:center; }
+.no-user-banner p { font-family:'IBM Plex Mono',monospace; font-size:0.65rem; color:#ff3d57; letter-spacing:0.15em; margin-bottom:1rem; }
+.no-user-banner a { font-family:'Orbitron',monospace; font-size:0.7rem; color:var(--vaqua); text-decoration:none; letter-spacing:0.2em; }
+
+@media (max-width:900px) {
+  nav { padding:1.2rem 1.5rem; }
+  .page-hero,.balance-section,.tiers-section,.gpay-section,.history-section { padding-left:1.5rem; padding-right:1.5rem; }
+  .balance-card { grid-template-columns:1fr; gap:2rem; }
+  .tiers-grid { grid-template-columns:repeat(2,1fr); }
+  .gpay-inner { grid-template-columns:1fr; gap:3rem; }
+}
+</style>
+</head>
+<body>
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursor-ring"></div>
+<div id="ripple-container"></div>
+<div id="progress-bar"></div>
+
+<!-- SUCCESS OVERLAY -->
+<div class="success-overlay" id="success-overlay">
+  <div class="success-icon">✅</div>
+  <div class="success-title">Payment Sent!</div>
+  <div class="success-sub" id="success-sub">₹0 has been sent to your UPI.<br>Transaction ID: AQV-<span id="txn-id">000000</span></div>
+  <button class="success-back-btn" onclick="closeSuccess()">← Back to Earn</button>
+</div>
+
+<!-- GPAY MODAL -->
+<div class="gpay-modal-overlay" id="gpay-modal">
+  <div class="gpay-modal-box">
+    <div class="gpay-modal-logo">
+      <span class="gpay-logo-g">G</span><span class="gpay-logo-o1">o</span><span class="gpay-logo-o2">o</span><span class="gpay-logo-gl">g</span><span class="gpay-logo-e">l</span><span style="color:#4285F4">e</span><span class="gpay-logo-pay"> Pay</span>
+    </div>
+    <div class="gpay-modal-amount" id="modal-amount">₹0</div>
+    <div class="gpay-modal-sub" id="modal-xp-used">0 XP REDEEMED</div>
+    <div class="gpay-modal-upi" id="modal-upi">UPI: —</div>
+    <div class="gpay-modal-steps">
+      <div class="gpay-modal-step"><span class="step-num">1</span>Amount will be sent to your UPI ID</div>
+      <div class="gpay-modal-step"><span class="step-num">2</span>XP will be deducted from your balance</div>
+      <div class="gpay-modal-step"><span class="step-num">3</span>You'll receive a confirmation SMS</div>
+    </div>
+    <button class="gpay-confirm-btn" onclick="confirmPayment()">✓ Confirm & Send ₹<span id="modal-amount-btn">0</span></button>
+    <button class="gpay-cancel-btn" onclick="closeGpayModal()">Cancel</button>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav>
+  <a href="index.html" class="nav-logo">⬡ AQUAVITA</a>
+  <ul class="nav-links">
+    <li><a href="about.html">About</a></li>
+    <li><a href="levels.html">Levels</a></li>
+    <li><a href="earn.html" class="active">Earn</a></li>
+    <li><a href="community.html">Community</a></li>
+    <li><a href="profile.html">My Profile</a></li>
+  </ul>
+  <div class="nav-right">
+    <div class="nav-xp-pill" id="nav-xp-pill">
+      <div class="xp-dot"></div>
+      <span id="nav-xp-count">0</span>&nbsp;XP
+    </div>
+    <button class="nav-signin-btn" id="nav-signin-btn" onclick="window.location.href='index.html'">Sign In</button>
+  </div>
+</nav>
+
+<!-- PAGE HERO -->
+<div class="page-hero">
+  <canvas class="page-hero-canvas" id="hero-canvas"></canvas>
+  <div class="page-hero-content">
+    <div class="page-hero-label">⚡ Rewards System</div>
+    <h1 class="page-hero-title">Earn <span class="accent">Real Cash</span><br>From Your Impact</h1>
+    <p class="page-hero-sub">Every water-saving action earns XP. Convert your XP to Indian Rupees and withdraw directly to your UPI account via Google Pay.</p>
+  </div>
+</div>
+
+<!-- NO USER BANNER -->
+<div class="no-user-banner" id="no-user-banner" style="display:none">
+  <p>⚠ YOU MUST BE SIGNED IN TO REDEEM XP</p>
+  <a href="index.html">← SIGN IN ON THE HOME PAGE</a>
+</div>
+
+<!-- XP BALANCE -->
+<div class="balance-section">
+  <div class="balance-card" id="balance-card">
+    <div>
+      <div class="balance-label">Your XP Balance</div>
+      <div class="balance-xp-num" id="bal-xp">0</div>
+      <div class="balance-xp-sub">EXPERIENCE POINTS</div>
+    </div>
+    <div class="balance-equals">=</div>
+    <div class="balance-value">
+      <div class="balance-label">Cash Value</div>
+      <div class="balance-inr-num" id="bal-inr">₹0.00</div>
+      <div class="balance-inr-sub">INDIAN RUPEES (INR)</div>
+    </div>
+    <div class="balance-rate">
+      <div class="rate-display">
+        <strong>100 XP = ₹1</strong><br>
+        Conversion Rate<br><br>
+        <strong>500 XP</strong><br>
+        Minimum Redeem<br><br>
+        <strong>Instant Transfer</strong><br>
+        via Google Pay UPI
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TIERS -->
+<div class="tiers-section">
+  <div class="section-header">
+    <h2>Redemption Tiers</h2>
+    <p>CHOOSE HOW MUCH XP YOU WANT TO REDEEM — HIGHER TIERS UNLOCK BONUS CASH</p>
+  </div>
+  <div class="tiers-grid">
+    <div class="tier-card" id="tier-1" style="--tier-color:var(--vcyan)" onclick="selectTier(1)">
+      <span class="tier-icon">💧</span>
+      <div class="tier-name" style="color:var(--vcyan)">DROPLET</div>
+      <div class="tier-xp">500 XP Required</div>
+      <div class="tier-amount" style="color:var(--vcyan)">₹5</div>
+      <div class="tier-inr">+ ₹0 bonus</div>
+      <div class="tier-lock-msg" id="tier-1-msg"></div>
+      <button class="tier-select-btn" id="tier-1-btn">Select</button>
+    </div>
+    <div class="tier-card" id="tier-2" style="--tier-color:var(--vaqua)" onclick="selectTier(2)">
+      <span class="tier-icon">🌊</span>
+      <div class="tier-name" style="color:var(--vaqua)">WAVE</div>
+      <div class="tier-xp">1,000 XP Required</div>
+      <div class="tier-amount" style="color:var(--vaqua)">₹11</div>
+      <div class="tier-inr">+ ₹1 bonus</div>
+      <div class="tier-lock-msg" id="tier-2-msg"></div>
+      <button class="tier-select-btn" id="tier-2-btn">Select</button>
+    </div>
+    <div class="tier-card" id="tier-3" style="--tier-color:var(--vgold)" onclick="selectTier(3)">
+      <span class="tier-icon">⭐</span>
+      <div class="tier-name" style="color:var(--vgold)">GUARDIAN</div>
+      <div class="tier-xp">2,500 XP Required</div>
+      <div class="tier-amount" style="color:var(--vgold)">₹28</div>
+      <div class="tier-inr">+ ₹3 bonus</div>
+      <div class="tier-lock-msg" id="tier-3-msg"></div>
+      <button class="tier-select-btn" id="tier-3-btn">Select</button>
+    </div>
+    <div class="tier-card" id="tier-4" style="--tier-color:var(--legendary)" onclick="selectTier(4)">
+      <span class="tier-icon">💎</span>
+      <div class="tier-name" style="color:var(--legendary)">LEGEND</div>
+      <div class="tier-xp">5,000 XP Required</div>
+      <div class="tier-amount" style="color:var(--legendary)">₹60</div>
+      <div class="tier-inr">+ ₹10 bonus</div>
+      <div class="tier-lock-msg" id="tier-4-msg"></div>
+      <button class="tier-select-btn" id="tier-4-btn">Select</button>
+    </div>
+  </div>
+</div>
+
+<!-- GPAY SECTION -->
+<div class="gpay-section">
+  <div class="gpay-panel">
+    <div class="gpay-inner">
+      <div class="gpay-info">
+        <h3>Withdraw via Google Pay</h3>
+        <p>Your XP converts instantly to INR and lands directly in your Google Pay linked bank account. Safe, instant, and zero fees.</p>
+        <ul class="gpay-steps">
+          <li data-step="1">Select a redemption tier above</li>
+          <li data-step="2">Enter your UPI ID (linked to GPay)</li>
+          <li data-step="3">Confirm the transaction</li>
+          <li data-step="4">Money arrives in your bank account</li>
+        </ul>
+      </div>
+      <div class="gpay-form">
+        <div class="gpay-logo-area">
+          <div>
+            <div class="gpay-logo">
+              <span class="gpay-logo-g">G</span><span class="gpay-logo-o1">o</span><span class="gpay-logo-o2">o</span><span class="gpay-logo-gl">g</span><span class="gpay-logo-e">l</span><span style="color:#4285F4">e</span><span class="gpay-logo-pay"> Pay</span>
+            </div>
+            <div class="gpay-tagline">SECURE UPI TRANSFER</div>
+          </div>
+          <div style="margin-left:auto;font-size:1.8rem">📱</div>
+        </div>
+        <div class="form-field">
+          <label>Your UPI ID</label>
+          <input type="text" id="upi-input" placeholder="yourname@okicici" />
+        </div>
+        <div class="form-field">
+          <label>Selected Tier</label>
+          <select id="tier-select">
+            <option value="">— Choose a tier —</option>
+            <option value="1">Droplet — 500 XP → ₹5</option>
+            <option value="2">Wave — 1,000 XP → ₹11</option>
+            <option value="3">Guardian — 2,500 XP → ₹28</option>
+            <option value="4">Legend — 5,000 XP → ₹60</option>
+          </select>
+        </div>
+        <div class="redeem-summary">
+          <div class="redeem-row"><span>XP to Redeem</span><span id="sum-xp">—</span></div>
+          <div class="redeem-row"><span>Base Amount</span><span id="sum-base">—</span></div>
+          <div class="redeem-row"><span>Bonus Cash</span><span id="sum-bonus" style="color:var(--emerald)">—</span></div>
+          <div class="redeem-row total"><span>You Receive</span><span id="sum-total">—</span></div>
+        </div>
+        <button class="gpay-btn" id="gpay-btn" onclick="initiatePayment()" disabled>
+          📱 Pay via Google Pay
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- HISTORY -->
+<div class="history-section">
+  <div class="section-header">
+    <h2>Redemption History</h2>
+    <p>YOUR PAST WITHDRAWALS</p>
+  </div>
+  <table class="history-table">
+    <thead>
+      <tr>
+        <th>Date</th><th>Tier</th><th>XP Used</th><th>Amount</th><th>UPI</th><th>Status</th>
+      </tr>
+    </thead>
+    <tbody id="history-body">
+      <tr><td colspan="6" class="history-empty">NO REDEMPTIONS YET — COMPLETE QUESTS TO EARN XP</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<script>
+// STATE
+const tiers = [
+  null,
+  { xp:500,  base:5,  bonus:0,  name:'Droplet', icon:'💧' },
+  { xp:1000, base:10, bonus:1,  name:'Wave',    icon:'🌊' },
+  { xp:2500, base:25, bonus:3,  name:'Guardian',icon:'⭐' },
+  { xp:5000, base:50, bonus:10, name:'Legend',  icon:'💎' }
+];
+let selectedTier = null;
+let currentXP = 0;
+
+function loadUser() { try { return JSON.parse(localStorage.getItem('aq_user')) || null; } catch { return null; } }
+function loadProgress() { try { return JSON.parse(localStorage.getItem('aq_progress')) || { xp:0 }; } catch { return { xp:0 }; } }
+function saveProgress(data) { localStorage.setItem('aq_progress', JSON.stringify(data)); }
+function loadHistory() { try { return JSON.parse(localStorage.getItem('aq_redeem_history')) || []; } catch { return []; } }
+function saveHistory(h) { localStorage.setItem('aq_redeem_history', JSON.stringify(h)); }
+
+function updateNavState() {
+  const user = loadUser(); const p = loadProgress();
+  const pill = document.getElementById('nav-xp-pill');
+  const btn = document.getElementById('nav-signin-btn');
+  if (user && user.isLoggedIn) {
+    currentXP = p.xp || 0;
+    document.getElementById('nav-xp-count').textContent = currentXP.toLocaleString();
+    pill.classList.add('visible');
+    btn.textContent = user.name.split(' ')[0];
+    btn.classList.add('signed-in');
+    btn.onclick = () => window.location.href = 'profile.html';
+    document.getElementById('no-user-banner').style.display = 'none';
+  } else {
+    document.getElementById('no-user-banner').style.display = 'block';
+  }
+}
+
+function updateBalance() {
+  const p = loadProgress();
+  currentXP = p.xp || 0;
+  document.getElementById('bal-xp').textContent = currentXP.toLocaleString();
+  document.getElementById('bal-inr').textContent = '₹' + (currentXP / 100).toFixed(2);
+  updateTierStatus();
+}
+
+function updateTierStatus() {
+  for (let i = 1; i <= 4; i++) {
+    const t = tiers[i];
+    const card = document.getElementById('tier-' + i);
+    const msg = document.getElementById('tier-' + i + '-msg');
+    const btn = document.getElementById('tier-' + i + '-btn');
+    if (currentXP < t.xp) {
+      card.classList.add('locked');
+      msg.textContent = 'Need ' + (t.xp - currentXP).toLocaleString() + ' more XP';
+      btn.disabled = true;
+    } else {
+      card.classList.remove('locked');
+      msg.textContent = '✓ Available';
+      msg.style.color = 'var(--emerald)';
+      btn.disabled = false;
+    }
+  }
+}
+
+function selectTier(n) {
+  const p = loadProgress();
+  if ((p.xp || 0) < tiers[n].xp) return;
+  selectedTier = n;
+  document.querySelectorAll('.tier-card').forEach(c => c.classList.remove('active-tier'));
+  document.getElementById('tier-' + n).classList.add('active-tier');
+  document.getElementById('tier-select').value = n;
+  updateSummary();
+}
+
+document.getElementById('tier-select').addEventListener('change', function() {
+  if (this.value) selectTier(parseInt(this.value));
+});
+
+function updateSummary() {
+  if (!selectedTier) return;
+  const t = tiers[selectedTier];
+  document.getElementById('sum-xp').textContent = t.xp.toLocaleString() + ' XP';
+  document.getElementById('sum-base').textContent = '₹' + t.base;
+  document.getElementById('sum-bonus').textContent = t.bonus > 0 ? '+₹' + t.bonus : '—';
+  document.getElementById('sum-total').textContent = '₹' + (t.base + t.bonus);
+  const upi = document.getElementById('upi-input').value.trim();
+  document.getElementById('gpay-btn').disabled = !upi || !selectedTier;
+}
+
+document.getElementById('upi-input').addEventListener('input', updateSummary);
+
+function initiatePayment() {
+  const upi = document.getElementById('upi-input').value.trim();
+  if (!upi || !selectedTier) return;
+  const t = tiers[selectedTier];
+  const total = t.base + t.bonus;
+  document.getElementById('modal-amount').textContent = '₹' + total;
+  document.getElementById('modal-amount-btn').textContent = total;
+  document.getElementById('modal-xp-used').textContent = t.xp.toLocaleString() + ' XP REDEEMED';
+  document.getElementById('modal-upi').textContent = 'UPI: ' + upi;
+  document.getElementById('gpay-modal').classList.add('open');
+}
+
+function closeGpayModal() { document.getElementById('gpay-modal').classList.remove('open'); }
+
+function confirmPayment() {
+  const upi = document.getElementById('upi-input').value.trim();
+  const t = tiers[selectedTier];
+  const total = t.base + t.bonus;
+  // Deduct XP
+  const p = loadProgress();
+  p.xp = Math.max(0, (p.xp || 0) - t.xp);
+  saveProgress(p);
+  // Save history
+  const txnId = 'AQV-' + Math.floor(Math.random() * 900000 + 100000);
+  const history = loadHistory();
+  history.unshift({ date: new Date().toISOString(), tier: t.name, xp: t.xp, amount: total, upi, txnId, status: 'Completed' });
+  saveHistory(history);
+  closeGpayModal();
+  document.getElementById('txn-id').textContent = txnId;
+  document.getElementById('success-sub').innerHTML = `₹${total} has been sent to ${upi}.<br>Transaction ID: ${txnId}`;
+  document.getElementById('success-overlay').classList.add('show');
+  renderHistory();
+  updateBalance();
+  document.getElementById('nav-xp-count').textContent = (p.xp || 0).toLocaleString();
+}
+
+function closeSuccess() {
+  document.getElementById('success-overlay').classList.remove('show');
+  selectedTier = null;
+  document.querySelectorAll('.tier-card').forEach(c => c.classList.remove('active-tier'));
+  document.getElementById('tier-select').value = '';
+  document.getElementById('upi-input').value = '';
+  document.getElementById('sum-xp').textContent = '—';
+  document.getElementById('sum-base').textContent = '—';
+  document.getElementById('sum-bonus').textContent = '—';
+  document.getElementById('sum-total').textContent = '—';
+  document.getElementById('gpay-btn').disabled = true;
+}
+
+function renderHistory() {
+  const history = loadHistory();
+  const tbody = document.getElementById('history-body');
+  if (history.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6" class="history-empty">NO REDEMPTIONS YET — COMPLETE QUESTS TO EARN XP</td></tr>';
+    return;
+  }
+  tbody.innerHTML = history.map(h => {
+    const d = new Date(h.date);
+    return `<tr>
+      <td>${d.toLocaleDateString('en-IN')}</td>
+      <td>${h.tier}</td>
+      <td>${h.xp.toLocaleString()} XP</td>
+      <td style="color:var(--emerald);font-weight:700">₹${h.amount}</td>
+      <td>${h.upi}</td>
+      <td style="color:var(--emerald)">✓ ${h.status}</td>
+    </tr>`;
+  }).join('');
+}
+
+// CURSOR
+const cursor = document.getElementById('cursor');
+const cursorRing = document.getElementById('cursor-ring');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove', e => { mx=e.clientX; my=e.clientY; cursor.style.left=mx+'px'; cursor.style.top=my+'px'; });
+function animRing() { rx+=(mx-rx)*0.12; ry+=(my-ry)*0.12; cursorRing.style.left=(rx-20)+'px'; cursorRing.style.top=(ry-20)+'px'; requestAnimationFrame(animRing); }
+animRing();
+document.addEventListener('click', e => {
+  const r = document.createElement('div'); r.className='ripple-circle';
+  r.style.left=e.clientX+'px'; r.style.top=e.clientY+'px';
+  document.getElementById('ripple-container').appendChild(r);
+  setTimeout(()=>r.remove(), 1000);
+});
+
+// PROGRESS BAR
+window.addEventListener('scroll', () => {
+  const pct = (window.scrollY / (document.body.scrollHeight - window.innerHeight)) * 100;
+  document.getElementById('progress-bar').style.width = pct + '%';
+});
+
+// HERO CANVAS — Gold particles
+(function() {
+  const c = document.getElementById('hero-canvas');
+  c.width = c.offsetWidth; c.height = c.offsetHeight;
+  const ctx = c.getContext('2d');
+  const particles = [];
+  for (let i = 0; i < 60; i++) {
+    particles.push({ x: Math.random()*c.width, y: Math.random()*c.height, vx:(Math.random()-.5)*0.4, vy:(Math.random()-.5)*0.4, r:Math.random()*2+0.5, alpha:Math.random()*0.3+0.05 });
+  }
+  function draw() {
+    ctx.clearRect(0,0,c.width,c.height);
+    for (let p of particles) {
+      p.x+=p.vx; p.y+=p.vy;
+      if(p.x<0)p.x=c.width; if(p.x>c.width)p.x=0; if(p.y<0)p.y=c.height; if(p.y>c.height)p.y=0;
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(255,193,7,${p.alpha})`; ctx.fill();
+    }
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+// INIT
+updateNavState(); updateBalance(); renderHistory();
+</script>
+</body>
+</html>

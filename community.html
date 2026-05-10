@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AquaVita — Community</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Space+Mono:wght@400;700&family=Orbitron:wght@400;700;900&family=IBM+Plex+Mono:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+:root{--void:#03060f;--deep:#020d1a;--panel:#0a1628;--border:#0f2040;--vcyan:#00f5ff;--vaqua:#00e5cc;--vgold:#ffc107;--emerald:#00e676;--ruby:#ff3d57;--legendary:#ff9f43;--purple:#b060ff;--muted:#4a7090;--foam:#90e0ef;--white:#f0faff;--teal:#0e7c7b;--cyan:#17c3b2;}
+*{margin:0;padding:0;box-sizing:border-box;}html{scroll-behavior:smooth;}
+body{background:var(--void);color:var(--white);font-family:'IBM Plex Mono',monospace;overflow-x:hidden;cursor:none;min-height:100vh;}
+body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,rgba(0,245,255,0.009) 0px,transparent 1px,transparent 3px);pointer-events:none;z-index:9994;}
+.cursor{position:fixed;width:10px;height:10px;border-radius:50%;background:var(--vcyan);pointer-events:none;z-index:9999;mix-blend-mode:screen;transform:translate(-50%,-50%);}
+.cursor-ring{position:fixed;width:36px;height:36px;border-radius:50%;border:1px solid rgba(0,245,255,0.4);pointer-events:none;z-index:9998;transition:all 0.1s ease;transform:translate(-50%,-50%);}
+.ripple{position:fixed;border-radius:50%;border:1px solid rgba(0,245,255,0.4);pointer-events:none;z-index:9993;transform:translate(-50%,-50%);animation:rippleOut .9s ease forwards;}
+@keyframes rippleOut{from{width:0;height:0;opacity:.7;}to{width:80px;height:80px;opacity:0;}}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:1000;padding:1.1rem 3rem;display:flex;justify-content:space-between;align-items:center;background:rgba(3,6,15,0.97);border-bottom:1px solid rgba(0,245,255,0.06);backdrop-filter:blur(10px);}
+.nav-logo{font-family:'Orbitron',monospace;font-size:.95rem;letter-spacing:.3em;color:var(--vcyan);text-shadow:0 0 15px rgba(0,245,255,.4);text-decoration:none;font-weight:700;}
+.nav-links{display:flex;gap:1.8rem;list-style:none;}
+.nav-links a{color:var(--foam);text-decoration:none;font-family:'Space Mono',monospace;font-size:.58rem;letter-spacing:.18em;text-transform:uppercase;position:relative;transition:color .3s;opacity:.65;}
+.nav-links a::after{content:'';position:absolute;bottom:-4px;left:0;width:0;height:1px;background:var(--vcyan);transition:width .3s;}
+.nav-links a:hover,.nav-links a.active{color:var(--vcyan);opacity:1;}
+.nav-links a:hover::after,.nav-links a.active::after{width:100%;}
+.nav-right{display:flex;align-items:center;gap:.9rem;}
+.nav-xp-pill{display:none;align-items:center;gap:.4rem;background:rgba(0,245,255,.08);border:1px solid rgba(0,245,255,.22);border-radius:100px;padding:.32rem .85rem;font-size:.56rem;color:var(--vcyan);}
+.nav-xp-pill.visible{display:flex;}
+.xp-dot{width:5px;height:5px;border-radius:50%;background:var(--vcyan);animation:dp 2s infinite;}
+@keyframes dp{0%,100%{opacity:.4;transform:scale(1);}50%{opacity:1;transform:scale(1.3);}}
+.nav-btn{font-size:.56rem;letter-spacing:.12em;text-transform:uppercase;color:var(--void);background:var(--vcyan);border:none;padding:.48rem 1rem;cursor:pointer;transition:all .3s;clip-path:polygon(7px 0%,100% 0%,calc(100% - 7px) 100%,0% 100%);}
+.nav-btn:hover{background:var(--vaqua);}
+.nav-btn.signed-in{background:transparent;color:var(--foam);border:1px solid rgba(0,245,255,.2);clip-path:none;}
+
+/* PAGE LAYOUT */
+.page{padding:72px 0 0;min-height:100vh;display:grid;grid-template-columns:1fr 340px;grid-template-rows:auto 1fr;max-width:1200px;margin:0 auto;gap:0 2.5rem;padding:72px 2rem 4rem;}
+.feed-col{min-width:0;}
+.sidebar-col{padding-top:1.5rem;}
+
+/* STORIES */
+.stories-bar{padding:1.5rem 0 1.2rem;border-bottom:1px solid rgba(255,255,255,.04);margin-bottom:1.5rem;overflow-x:auto;scrollbar-width:none;}
+.stories-bar::-webkit-scrollbar{display:none;}
+.stories-row{display:flex;gap:1rem;padding-bottom:.4rem;}
+.story-item{display:flex;flex-direction:column;align-items:center;gap:.45rem;cursor:pointer;flex-shrink:0;}
+.story-ring{width:62px;height:62px;border-radius:50%;padding:2px;background:linear-gradient(135deg,var(--vcyan),var(--vaqua),var(--vgold));position:relative;transition:transform .3s;}
+.story-ring:hover{transform:scale(1.07);}
+.story-ring.new{background:linear-gradient(135deg,var(--ruby),var(--legendary),var(--vgold));}
+.story-ring.you{background:linear-gradient(135deg,var(--vcyan),var(--purple));}
+.story-av{width:100%;height:100%;border-radius:50%;background:var(--panel);border:2px solid var(--void);display:flex;align-items:center;justify-content:center;font-size:1.6rem;overflow:hidden;}
+.story-av img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
+.story-name{font-size:.42rem;letter-spacing:.06em;color:var(--foam);opacity:.7;text-align:center;max-width:62px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.add-story-btn{width:62px;height:62px;border-radius:50%;border:2px dashed rgba(0,245,255,.3);display:flex;align-items:center;justify-content:center;font-size:1.6rem;cursor:pointer;transition:all .3s;flex-shrink:0;}
+.add-story-btn:hover{border-color:var(--vcyan);background:rgba(0,245,255,.05);}
+
+/* CREATE POST BAR */
+.create-bar{background:var(--panel);border:1px solid rgba(255,255,255,.05);padding:1rem 1.4rem;display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem;cursor:pointer;transition:all .3s;}
+.create-bar:hover{border-color:rgba(0,245,255,.2);background:rgba(10,37,64,.7);}
+.create-av-sm{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--vcyan),var(--vaqua));display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;}
+.create-placeholder{flex:1;font-size:.58rem;color:var(--muted);letter-spacing:.1em;}
+.create-icons{display:flex;gap:.8rem;}
+.ci{font-size:1.1rem;opacity:.5;transition:opacity .3s;}
+.ci:hover{opacity:1;}
+
+/* POSTS FEED */
+.post-card{background:var(--panel);border:1px solid rgba(255,255,255,.04);margin-bottom:1.5rem;position:relative;overflow:hidden;transition:border-color .3s;}
+.post-card:hover{border-color:rgba(0,245,255,.1);}
+.post-header{padding:1rem 1.2rem;display:flex;align-items:center;gap:.9rem;}
+.post-av{width:42px;height:42px;border-radius:50%;flex-shrink:0;position:relative;}
+.post-av-img{width:100%;height:100%;border-radius:50%;object-fit:cover;border:2px solid rgba(0,245,255,.2);}
+.post-av-emoji{width:100%;height:100%;border-radius:50%;background:linear-gradient(135deg,var(--vcyan),var(--vaqua));display:flex;align-items:center;justify-content:center;font-size:1.2rem;border:2px solid rgba(0,245,255,.2);}
+.post-av-badge{position:absolute;bottom:-2px;right:-2px;width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.55rem;border:1.5px solid var(--void);}
+.post-user-info{flex:1;}
+.post-username{font-family:'Orbitron',monospace;font-size:.62rem;font-weight:700;letter-spacing:.04em;color:var(--white);}
+.post-meta{font-size:.5rem;color:var(--muted);letter-spacing:.08em;margin-top:.15rem;display:flex;gap:.6rem;align-items:center;}
+.post-meta .level-tag{color:var(--vgold);}
+.post-menu-btn{background:none;border:none;color:var(--muted);font-size:1.1rem;cursor:pointer;padding:.3rem;transition:color .3s;letter-spacing:.15em;}
+.post-menu-btn:hover{color:var(--white);}
+
+/* POST IMAGE */
+.post-img-wrap{position:relative;overflow:hidden;min-height:280px;max-height:480px;background:var(--deep);cursor:pointer;}
+.post-img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .4s ease;}
+.post-img:hover{transform:scale(1.02);}
+.post-img-placeholder{width:100%;min-height:280px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:1rem;font-size:4rem;position:relative;}
+.post-img-placeholder::after{content:'';position:absolute;inset:0;background:rgba(0,0,0,.15);}
+.post-img-placeholder .p-emoji{position:relative;z-index:1;filter:drop-shadow(0 0 20px rgba(0,245,255,.5));}
+
+/* POST TAGS OVERLAY */
+.post-tags-overlay{position:absolute;bottom:0;left:0;right:0;padding:.8rem 1rem;background:linear-gradient(to top,rgba(3,6,15,.9),transparent);display:flex;gap:.4rem;flex-wrap:wrap;}
+.post-tag-badge{font-family:'IBM Plex Mono',monospace;font-size:.45rem;padding:.2rem .6rem;background:rgba(0,245,255,.12);border:1px solid rgba(0,245,255,.2);color:var(--vcyan);letter-spacing:.08em;}
+
+/* POST ACTIONS */
+.post-actions{padding:.85rem 1.2rem;display:flex;align-items:center;gap:1.2rem;border-bottom:1px solid rgba(255,255,255,.03);}
+.post-action-btn{background:none;border:none;display:flex;align-items:center;gap:.4rem;color:var(--muted);cursor:pointer;font-family:'IBM Plex Mono',monospace;font-size:.55rem;letter-spacing:.06em;transition:color .3s;padding:.2rem .1rem;}
+.post-action-btn:hover{color:var(--foam);}
+.post-action-btn.liked{color:var(--ruby);animation:heartPop .3s cubic-bezier(.34,1.56,.64,1);}
+@keyframes heartPop{0%{transform:scale(1);}50%{transform:scale(1.4);}100%{transform:scale(1);}}
+.post-action-btn.bookmarked{color:var(--vgold);}
+.pa-icon{font-size:1.1rem;}
+.post-xp-badge{margin-left:auto;display:flex;align-items:center;gap:.4rem;font-size:.48rem;color:var(--vgold);letter-spacing:.1em;}
+
+/* POST CAPTION */
+.post-caption{padding:.8rem 1.2rem;}
+.post-caption-text{font-family:'Cormorant Garamond',serif;font-size:1rem;font-weight:300;color:var(--foam);line-height:1.7;margin-bottom:.5rem;}
+.post-hashtags{display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.5rem;}
+.post-hashtag{font-size:.5rem;color:var(--vcyan);cursor:pointer;letter-spacing:.04em;transition:opacity .3s;}
+.post-hashtag:hover{opacity:.7;}
+.post-time{font-size:.46rem;color:var(--muted);letter-spacing:.1em;}
+
+/* COMMENTS */
+.post-comments{padding:0 1.2rem .8rem;border-top:1px solid rgba(255,255,255,.03);margin-top:.4rem;padding-top:.7rem;}
+.comment-row{display:flex;gap:.7rem;margin-bottom:.55rem;align-items:flex-start;}
+.comment-av{width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,var(--teal),var(--vcyan));display:flex;align-items:center;justify-content:center;font-size:.75rem;flex-shrink:0;}
+.comment-body{flex:1;}
+.comment-user{font-family:'Orbitron',monospace;font-size:.48rem;color:var(--vcyan);letter-spacing:.06em;margin-bottom:.15rem;}
+.comment-text{font-size:.56rem;color:var(--foam);opacity:.8;line-height:1.5;}
+.comment-input-row{display:flex;gap:.7rem;align-items:center;margin-top:.8rem;}
+.comment-input{flex:1;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);padding:.5rem .8rem;font-family:'IBM Plex Mono',monospace;font-size:.55rem;color:var(--white);outline:none;transition:border-color .3s;}
+.comment-input::placeholder{color:rgba(144,224,239,.25);}
+.comment-input:focus{border-color:rgba(0,245,255,.25);}
+.comment-send{background:none;border:none;color:var(--vcyan);cursor:pointer;font-size:1rem;transition:transform .2s;padding:.3rem;}
+.comment-send:hover{transform:scale(1.2);}
+.view-more-comments{font-size:.48rem;color:var(--muted);cursor:pointer;letter-spacing:.1em;margin-bottom:.5rem;transition:color .3s;}
+.view-more-comments:hover{color:var(--vcyan);}
+
+/* SIDEBAR */
+.sidebar-card{background:var(--panel);border:1px solid rgba(255,255,255,.04);padding:1.4rem;margin-bottom:1.5rem;}
+.sidebar-title{font-family:'Orbitron',monospace;font-size:.6rem;letter-spacing:.25em;color:var(--vcyan);margin-bottom:1.2rem;display:flex;align-items:center;gap:.6rem;}
+.sidebar-title::before{content:'';width:14px;height:1px;background:var(--vcyan);}
+.trending-tag{display:flex;align-items:center;justify-content:space-between;padding:.55rem 0;border-bottom:1px solid rgba(255,255,255,.03);cursor:pointer;transition:all .3s;}
+.trending-tag:last-child{border:none;}
+.trending-tag:hover .tt-name{color:var(--vcyan);}
+.tt-num{font-size:.42rem;color:var(--muted);letter-spacing:.05em;}
+.tt-name{font-size:.58rem;color:var(--foam);letter-spacing:.06em;transition:color .3s;}
+.tt-count{font-size:.48rem;color:var(--muted);}
+.hero-row{display:flex;align-items:center;gap:.8rem;padding:.6rem 0;border-bottom:1px solid rgba(255,255,255,.03);}
+.hero-row:last-child{border:none;}
+.hero-av-sm{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1rem;background:linear-gradient(135deg,var(--teal),var(--vcyan));flex-shrink:0;}
+.hero-name{font-family:'Orbitron',monospace;font-size:.5rem;color:var(--white);letter-spacing:.04em;}
+.hero-level{font-size:.42rem;color:var(--vgold);margin-top:.1rem;letter-spacing:.06em;}
+.hero-follow-btn{margin-left:auto;font-size:.46rem;letter-spacing:.08em;padding:.32rem .7rem;background:rgba(0,245,255,.08);border:1px solid rgba(0,245,255,.2);color:var(--vcyan);cursor:pointer;transition:all .3s;}
+.hero-follow-btn:hover{background:rgba(0,245,255,.16);}
+.hero-follow-btn.following{color:var(--muted);border-color:rgba(255,255,255,.08);background:transparent;}
+.impact-stat{display:flex;justify-content:space-between;padding:.5rem 0;border-bottom:1px solid rgba(255,255,255,.03);}
+.impact-stat:last-child{border:none;}
+.is-label{font-size:.5rem;color:var(--muted);letter-spacing:.08em;}
+.is-val{font-family:'Orbitron',monospace;font-size:.6rem;color:var(--vgold);font-weight:700;}
+
+/* FAB */
+.fab{position:fixed;bottom:2.5rem;right:2.5rem;z-index:990;width:58px;height:58px;border-radius:50%;background:linear-gradient(135deg,var(--teal),var(--vcyan));border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1.5rem;box-shadow:0 0 30px rgba(0,245,255,.35);transition:all .3s;animation:fabPulse 3s ease infinite;}
+@keyframes fabPulse{0%,100%{box-shadow:0 0 30px rgba(0,245,255,.35);}50%{box-shadow:0 0 50px rgba(0,245,255,.55);}}
+.fab:hover{transform:scale(1.1) rotate(45deg);box-shadow:0 0 60px rgba(0,245,255,.5);}
+
+/* MODAL OVERLAY */
+.modal-overlay{position:fixed;inset:0;z-index:10000;background:rgba(3,6,15,.96);backdrop-filter:blur(15px);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s;}
+.modal-overlay.open{opacity:1;pointer-events:all;}
+
+/* CREATE POST MODAL */
+.cp-box{background:linear-gradient(135deg,#060f20,#0a1628);border:1px solid rgba(0,245,255,.14);width:90%;max-width:680px;max-height:90vh;overflow-y:auto;transform:translateY(20px) scale(.97);transition:transform .4s cubic-bezier(.34,1.56,.64,1);box-shadow:0 0 80px rgba(0,245,255,.1);}
+.modal-overlay.open .cp-box,.modal-overlay.open .sv-box{transform:translateY(0) scale(1);}
+.cp-header{padding:1.5rem 2rem;border-bottom:1px solid rgba(255,255,255,.05);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:#060f20;z-index:5;}
+.cp-title{font-family:'Orbitron',monospace;font-size:.72rem;letter-spacing:.22em;color:var(--vcyan);}
+.m-close{background:none;border:none;color:var(--muted);font-size:1.3rem;cursor:pointer;transition:color .2s;line-height:1;}
+.m-close:hover{color:var(--white);}
+.cp-body{padding:2rem;}
+.cp-user-row{display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem;}
+.cp-av{width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,var(--vcyan),var(--vaqua));display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0;}
+.cp-user-name{font-family:'Orbitron',monospace;font-size:.65rem;color:var(--white);}
+.cp-user-sub{font-size:.5rem;color:var(--muted);margin-top:.15rem;letter-spacing:.08em;}
+
+/* Image drop area */
+.img-drop{border:2px dashed rgba(0,245,255,.18);min-height:240px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:all .3s;margin-bottom:1.5rem;position:relative;overflow:hidden;}
+.img-drop:hover,.img-drop.drag-over{border-color:rgba(0,245,255,.5);background:rgba(0,245,255,.03);}
+.img-drop-icon{font-size:3rem;margin-bottom:.8rem;opacity:.4;}
+.img-drop-title{font-family:'Orbitron',monospace;font-size:.62rem;letter-spacing:.12em;color:var(--foam);margin-bottom:.3rem;}
+.img-drop-sub{font-size:.52rem;color:var(--muted);}
+.img-preview-area{position:relative;width:100%;}
+.img-preview-area img{width:100%;max-height:360px;object-fit:contain;display:block;background:var(--deep);}
+.img-remove-btn{position:absolute;top:.6rem;right:.6rem;background:rgba(3,6,15,.8);border:1px solid rgba(255,61,87,.3);color:var(--ruby);font-size:.5rem;padding:.3rem .6rem;cursor:pointer;letter-spacing:.08em;transition:all .3s;}
+.img-remove-btn:hover{background:rgba(255,61,87,.15);}
+
+.cp-textarea{width:100%;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);padding:.9rem 1rem;font-family:'Cormorant Garamond',serif;font-size:1rem;color:var(--white);resize:vertical;min-height:100px;outline:none;transition:border-color .3s;margin-bottom:1rem;font-weight:300;}
+.cp-textarea::placeholder{color:rgba(144,224,239,.2);}
+.cp-textarea:focus{border-color:rgba(0,245,255,.25);}
+.cp-tags-row{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1.2rem;}
+.cp-tag-chip{display:inline-flex;align-items:center;gap:.3rem;padding:.3rem .7rem;font-size:.5rem;background:rgba(0,245,255,.07);border:1px solid rgba(0,245,255,.15);color:var(--vcyan);cursor:pointer;transition:all .3s;letter-spacing:.05em;}
+.cp-tag-chip.selected{background:rgba(0,245,255,.18);border-color:var(--vcyan);}
+.cp-tags-label{font-size:.5rem;color:var(--muted);letter-spacing:.12em;margin-bottom:.7rem;display:block;}
+.cp-quest-select{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1.5rem;}
+.cp-quest-chip{padding:.28rem .65rem;font-size:.48rem;background:rgba(255,193,7,.07);border:1px solid rgba(255,193,7,.15);color:var(--vgold);cursor:pointer;transition:all .3s;letter-spacing:.05em;}
+.cp-quest-chip.selected{background:rgba(255,193,7,.18);border-color:var(--vgold);}
+.cp-submit-btn{width:100%;padding:.9rem;font-family:'Orbitron',monospace;font-size:.65rem;letter-spacing:.2em;background:linear-gradient(135deg,var(--teal),var(--vcyan));color:var(--void);border:none;cursor:pointer;clip-path:polygon(10px 0%,100% 0%,calc(100% - 10px) 100%,0% 100%);font-weight:700;transition:all .3s;margin-top:.5rem;}
+.cp-submit-btn:hover{box-shadow:0 0 30px rgba(0,245,255,.3);transform:translateY(-2px);}
+.cp-submit-btn:disabled{opacity:.4;cursor:not-allowed;transform:none;box-shadow:none;}
+
+/* STORY VIEWER */
+.sv-box{background:var(--deep);border:1px solid rgba(0,245,255,.12);width:90%;max-width:420px;max-height:85vh;overflow:hidden;position:relative;transform:translateY(20px) scale(.97);transition:transform .4s cubic-bezier(.34,1.56,.64,1);}
+.sv-img{width:100%;height:500px;object-fit:cover;display:block;}
+.sv-grad{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(3,6,15,.6) 0%,transparent 30%,transparent 60%,rgba(3,6,15,.8) 100%);}
+.sv-top{position:absolute;top:0;left:0;right:0;padding:1rem 1.2rem;display:flex;align-items:center;gap:.8rem;}
+.sv-prog-bars{display:flex;gap:3px;margin-bottom:.8rem;}
+.sv-prog{flex:1;height:2px;background:rgba(255,255,255,.3);border-radius:1px;overflow:hidden;}
+.sv-prog-fill{height:100%;background:white;width:0%;animation:svProg 4s linear forwards;}
+@keyframes svProg{to{width:100%;}}
+.sv-av{width:34px;height:34px;border-radius:50%;border:2px solid white;display:flex;align-items:center;justify-content:center;font-size:1rem;}
+.sv-user{font-size:.55rem;color:white;font-family:'Orbitron',monospace;letter-spacing:.05em;}
+.sv-bottom{position:absolute;bottom:0;left:0;right:0;padding:1.5rem 1.2rem;}
+.sv-caption{font-family:'Cormorant Garamond',serif;font-size:1.1rem;color:white;margin-bottom:.5rem;}
+.sv-tag{font-size:.5rem;color:rgba(0,245,255,.9);letter-spacing:.08em;}
+
+/* TOAST */
+.toast{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%) translateY(100px);z-index:9990;background:linear-gradient(135deg,#060f20,#0a1628);border:1px solid rgba(0,245,255,.2);padding:.85rem 1.8rem;transition:transform .4s cubic-bezier(.34,1.56,.64,1);white-space:nowrap;box-shadow:0 0 25px rgba(0,245,255,.12);}
+.toast.show{transform:translateX(-50%) translateY(0);}
+.toast-t{font-family:'Orbitron',monospace;font-size:.5rem;letter-spacing:.2em;color:var(--vcyan);margin-bottom:.2rem;}
+.toast-b{font-size:.56rem;color:var(--foam);opacity:.8;}
+
+/* EMPTY STATE */
+.empty-feed{text-align:center;padding:5rem 2rem;}
+.empty-icon{font-size:4rem;display:block;margin-bottom:1rem;opacity:.3;}
+.empty-title{font-family:'Orbitron',monospace;font-size:.75rem;color:var(--muted);letter-spacing:.2em;margin-bottom:.5rem;}
+.empty-sub{font-size:.55rem;color:var(--muted);letter-spacing:.1em;}
+
+/* LOAD ANIMATION */
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
+.post-card{animation:fadeUp .5s ease both;}
+
+/* FILTER BAR */
+.filter-bar{display:flex;gap:.5rem;margin-bottom:1.5rem;overflow-x:auto;scrollbar-width:none;padding-bottom:.3rem;}
+.filter-bar::-webkit-scrollbar{display:none;}
+.filter-chip{font-family:'IBM Plex Mono',monospace;font-size:.48rem;letter-spacing:.1em;padding:.35rem .9rem;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);color:var(--muted);cursor:pointer;white-space:nowrap;transition:all .3s;text-transform:uppercase;}
+.filter-chip:hover{border-color:rgba(0,245,255,.25);color:var(--vcyan);}
+.filter-chip.active{background:rgba(0,245,255,.1);border-color:rgba(0,245,255,.3);color:var(--vcyan);}
+
+/* XP FLOAT */
+.xp-float{position:fixed;font-family:'Orbitron',monospace;font-weight:700;font-size:.9rem;color:var(--vgold);pointer-events:none;z-index:9992;text-shadow:0 0 10px rgba(255,193,7,.8);animation:floatUp 1.5s ease forwards;}
+@keyframes floatUp{from{opacity:1;transform:translateY(0) scale(1);}to{opacity:0;transform:translateY(-70px) scale(.8);}}
+
+@media(max-width:900px){
+  nav{padding:1rem 1.2rem;}
+  .page{grid-template-columns:1fr;padding:68px 1rem 5rem;}
+  .sidebar-col{display:none;}
+  .fab{bottom:1.5rem;right:1.5rem;}
+}
+</style>
+</head>
+<body>
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursor-ring"></div>
+<div class="toast" id="toast"><div class="toast-t" id="toast-t"></div><div class="toast-b" id="toast-b"></div></div>
+
+<!-- CREATE POST MODAL -->
+<div class="modal-overlay" id="cp-modal">
+  <div class="cp-box">
+    <div class="cp-header">
+      <span class="cp-title">📸 SHARE YOUR IMPACT</span>
+      <button class="m-close" onclick="closeCP()">×</button>
+    </div>
+    <div class="cp-body">
+      <div class="cp-user-row">
+        <div class="cp-av" id="cp-av">💧</div>
+        <div>
+          <div class="cp-user-name" id="cp-uname">Water Hero</div>
+          <div class="cp-user-sub">POSTING TO AQUAVITA COMMUNITY</div>
+        </div>
+      </div>
+      <!-- Image Upload -->
+      <div class="img-drop" id="img-drop" onclick="document.getElementById('cp-fi').click()" ondragover="event.preventDefault();this.classList.add('drag-over')" ondragleave="this.classList.remove('drag-over')" ondrop="cpDrop(event)">
+        <span class="img-drop-icon">🌊</span>
+        <div class="img-drop-title">ADD YOUR PHOTO</div>
+        <div class="img-drop-sub">Drop an image or click to browse · JPEG · PNG · max 10MB</div>
+      </div>
+      <div id="img-preview-area" style="display:none;margin-bottom:1.5rem;">
+        <div class="img-preview-area">
+          <img id="cp-preview" src="" alt="">
+          <button class="img-remove-btn" onclick="removeImg()">✕ REMOVE</button>
+        </div>
+      </div>
+      <input type="file" id="cp-fi" accept="image/*" onchange="cpFileSelect(event)" style="display:none">
+      <textarea class="cp-textarea" id="cp-caption" placeholder="Share your water-saving story with the community..." maxlength="500"></textarea>
+      <span class="cp-tags-label">ADD HASHTAGS</span>
+      <div class="cp-tags-row">
+        <div class="cp-tag-chip" data-tag="SaveWater" onclick="toggleTag(this)">#SaveWater</div>
+        <div class="cp-tag-chip" data-tag="AquaVita" onclick="toggleTag(this)">#AquaVita</div>
+        <div class="cp-tag-chip" data-tag="WaterHero" onclick="toggleTag(this)">#WaterHero</div>
+        <div class="cp-tag-chip" data-tag="RainHarvest" onclick="toggleTag(this)">#RainHarvest</div>
+        <div class="cp-tag-chip" data-tag="ZeroWaste" onclick="toggleTag(this)">#ZeroWaste</div>
+        <div class="cp-tag-chip" data-tag="Kerala" onclick="toggleTag(this)">#Kerala</div>
+        <div class="cp-tag-chip" data-tag="NatureFirst" onclick="toggleTag(this)">#NatureFirst</div>
+        <div class="cp-tag-chip" data-tag="GreenLiving" onclick="toggleTag(this)">#GreenLiving</div>
+        <div class="cp-tag-chip" data-tag="ClimateAction" onclick="toggleTag(this)">#ClimateAction</div>
+      </div>
+      <span class="cp-tags-label" style="margin-top:.8rem;">LINK TO A QUEST (OPTIONAL)</span>
+      <div class="cp-quest-select" id="cp-quests">
+        <div class="cp-quest-chip" data-q="5-Minute Shower Sprint" onclick="toggleQuest(this)">🚿 5-Min Shower</div>
+        <div class="cp-quest-chip" data-q="Rain Catcher Setup" onclick="toggleQuest(this)">🌧️ Rain Catcher</div>
+        <div class="cp-quest-chip" data-q="Low-Flow Installation" onclick="toggleQuest(this)">💧 Low-Flow</div>
+        <div class="cp-quest-chip" data-q="Mulch Master" onclick="toggleQuest(this)">🌿 Mulch Master</div>
+        <div class="cp-quest-chip" data-q="Zero Leak Protocol" onclick="toggleQuest(this)">🔧 Zero Leak</div>
+        <div class="cp-quest-chip" data-q="Workshop Host" onclick="toggleQuest(this)">🎓 Workshop</div>
+      </div>
+      <button class="cp-submit-btn" id="cp-submit" onclick="submitPost()">🌊 SHARE WITH COMMUNITY</button>
+    </div>
+  </div>
+</div>
+
+<!-- STORY VIEWER -->
+<div class="modal-overlay" id="sv-modal">
+  <div class="sv-box">
+    <button class="m-close" onclick="closeSV()" style="position:absolute;top:1rem;right:1rem;z-index:10;color:white;font-size:1.5rem;">×</button>
+    <div class="sv-img" id="sv-content"></div>
+    <div class="sv-grad"></div>
+    <div class="sv-top">
+      <div style="width:100%">
+        <div class="sv-prog-bars" id="sv-bars"></div>
+        <div style="display:flex;align-items:center;gap:.8rem;">
+          <div class="sv-av" id="sv-av">💧</div>
+          <div>
+            <div class="sv-user" id="sv-user">User</div>
+            <div style="font-size:.45rem;color:rgba(255,255,255,.5);letter-spacing:.08em;" id="sv-time">Just now</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="sv-bottom">
+      <div class="sv-caption" id="sv-caption">Caption here</div>
+      <div class="sv-tag" id="sv-tags"></div>
+    </div>
+  </div>
+  <div style="position:absolute;inset:0;z-index:-1;" onclick="closeSV()"></div>
+</div>
+
+<!-- NAV -->
+<nav>
+  <a href="index.html" class="nav-logo">⬡ AQUAVITA</a>
+  <ul class="nav-links">
+    <li><a href="about.html">About</a></li>
+    <li><a href="levels.html">Levels</a></li>
+    <li><a href="earn.html">Earn</a></li>
+    <li><a href="community.html" class="active">Community</a></li>
+    <li><a href="profile.html">My Profile</a></li>
+  </ul>
+  <div class="nav-right">
+    <div class="nav-xp-pill" id="nav-xp-pill"><div class="xp-dot"></div><span id="nav-xp-count">0</span>&nbsp;XP</div>
+    <button class="nav-btn" id="nav-btn" onclick="navClick()">Sign In</button>
+  </div>
+</nav>
+
+<!-- FAB -->
+<button class="fab" title="Share your impact" onclick="openCP()">＋</button>
+
+<!-- PAGE -->
+<div class="page">
+  <!-- FEED -->
+  <div class="feed-col">
+    <!-- STORIES -->
+    <div class="stories-bar">
+      <div class="stories-row" id="stories-row"></div>
+    </div>
+    <!-- CREATE BAR -->
+    <div class="create-bar" onclick="openCP()">
+      <div class="create-av-sm" id="create-av">💧</div>
+      <div class="create-placeholder">Share your water-saving action with the community...</div>
+      <div class="create-icons">
+        <span class="ci">📸</span><span class="ci">🌿</span><span class="ci">💧</span>
+      </div>
+    </div>
+    <!-- FILTER BAR -->
+    <div class="filter-bar">
+      <div class="filter-chip active" data-filter="all" onclick="setFilter(this,'all')">All Posts</div>
+      <div class="filter-chip" data-filter="photo" onclick="setFilter(this,'photo')">📸 With Photo</div>
+      <div class="filter-chip" data-filter="SaveWater" onclick="setFilter(this,'SaveWater')">#SaveWater</div>
+      <div class="filter-chip" data-filter="RainHarvest" onclick="setFilter(this,'RainHarvest')">#RainHarvest</div>
+      <div class="filter-chip" data-filter="Kerala" onclick="setFilter(this,'Kerala')">#Kerala</div>
+      <div class="filter-chip" data-filter="ZeroWaste" onclick="setFilter(this,'ZeroWaste')">#ZeroWaste</div>
+      <div class="filter-chip" data-filter="NatureFirst" onclick="setFilter(this,'NatureFirst')">#NatureFirst</div>
+    </div>
+    <!-- FEED -->
+    <div id="feed"></div>
+  </div>
+
+  <!-- SIDEBAR -->
+  <div class="sidebar-col">
+    <!-- MY PROFILE MINI -->
+    <div class="sidebar-card" id="sidebar-profile" style="display:none">
+      <div class="sidebar-title">YOUR PROFILE</div>
+      <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1rem;">
+        <div style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--vcyan),var(--vaqua));display:flex;align-items:center;justify-content:center;font-size:1.5rem;" id="sb-av">💧</div>
+        <div>
+          <div style="font-family:'Orbitron',monospace;font-size:.62rem;color:var(--white);" id="sb-name">—</div>
+          <div style="font-size:.48rem;color:var(--vgold);margin-top:.15rem;" id="sb-xp">0 XP</div>
+        </div>
+      </div>
+      <a href="profile.html" style="display:block;text-align:center;font-family:'IBM Plex Mono',monospace;font-size:.52rem;letter-spacing:.12em;color:var(--vcyan);padding:.5rem;border:1px solid rgba(0,245,255,.2);transition:all .3s;text-decoration:none;">VIEW FULL PROFILE →</a>
+    </div>
+    <!-- TRENDING TAGS -->
+    <div class="sidebar-card">
+      <div class="sidebar-title">TRENDING TAGS</div>
+      <div id="trending-tags"></div>
+    </div>
+    <!-- TOP HEROES -->
+    <div class="sidebar-card">
+      <div class="sidebar-title">TOP CONSERVERS</div>
+      <div id="top-heroes"></div>
+    </div>
+    <!-- COMMUNITY IMPACT -->
+    <div class="sidebar-card">
+      <div class="sidebar-title">COMMUNITY IMPACT</div>
+      <div class="impact-stat"><span class="is-label">Total Posts</span><span class="is-val" id="si-posts">0</span></div>
+      <div class="impact-stat"><span class="is-label">Litres Saved</span><span class="is-val" id="si-water">142M L</span></div>
+      <div class="impact-stat"><span class="is-label">XP Earned</span><span class="is-val" id="si-xp">8.4M</span></div>
+      <div class="impact-stat"><span class="is-label">Heroes Active</span><span class="is-val">2.8K+</span></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// SEED POSTS (always visible to all users)
+// ============================================================
+const SEED_POSTS = [
+  {id:'seed_1',user:'AquaHero_Priya',avatar:'🌺',level:'Guardian',levelColor:'#00e5cc',caption:'Just completed my rain harvesting setup! 🌧️ Connected a 500L barrel to the roof drain. Already collected 40L in the first rain. Never buying tanker water for the garden again!',tags:['RainHarvest','SaveWater','AquaVita','Kerala'],quest:'Rain Catcher Setup',questXP:120,likes:247,comments:[{user:'WaterWarrior_Raj',av:'🌊',text:'This is incredible! How did you connect it to the downpipe?'},{user:'EcoMeera',av:'🌿',text:'Love this! I did the same last month. It makes such a difference!'}],time:'2h ago',bg:'linear-gradient(135deg,#0a3d62,#1a6b8a,#0e7c7b)',emoji:'🌧️',liked:false,bookmarked:false,hasImg:false},
+{id:"seed_2",user:"WaterWarrior_Kiran",avatar:"🌊",level:"Protector",levelColor:"#b060ff",caption:"5-minute shower challenge — Day 30 complete! ✅ I've saved an estimated 1,500 litres of water this month alone. Small habits, massive impact. Who else is on this challenge? Tag someone!",tags:["SaveWater","WaterHero","ClimateAction"],quest:"5-Minute Shower Sprint",questXP:80,likes:189,comments:[{user:"AquaHero_Priya",av:"🌊",text:"30 days! You're an inspiration 💧"},{user:"GreenLivingVivek",av:"🌱",text:"I started because of your posts. On Day 12 now!"}],time:"5h ago",bg:"linear-gradient(135deg,#0d1b4b,#1a237e,#0a2540)",emoji:"🚿",liked:false,bookmarked:false,hasImg:false},
+  {id:"seed_3",user:"GreenAnjali",avatar:"🌿",level:"Champion",levelColor:"#ffc107",caption:"Hosted my first water conservation workshop at our apartment complex today! 🎓 23 residents attended. 18 signed up on AquaVita on the spot. Our building now saves an estimated 2,000L/day. This is what community action looks like.",tags:["WaterHero","AquaVita","ZeroWaste","ClimateAction"],quest:"Workshop Host",questXP:350,likes:512,comments:[{user:"WaterWarrior_Kiran",av:"🌊",text:"YOU ARE AMAZING. 23 people! That's the kind of leadership we need."},{user:"AquaHero_Priya",av:"🌺",text:"Our building needs this. Can you share your slides?"},{user:"EcoMeera",av:"🌿",text:"The ripple effect of this is going to be HUGE. So proud!"}],time:"1d ago",bg:"linear-gradient(135deg,#1a0533,#2d1b69,#4a235a)",emoji:"🎓",liked:false,bookmarked:false,hasImg:false},
+  {id:"seed_4",user:"RainMaster_Suresh",avatar:"⚡",level:"Guardian",levelColor:"#00e5cc",caption:"Before & After: replaced all high-water plants in my garden with native drought-resistant species from the local nursery 🌵 These beauties need watering only twice a week vs twice a day. Garden transformed, water saved.",tags:["NatureFirst","GreenLiving","SaveWater","Kerala"],quest:"Drought Warriors Garden",questXP:150,likes:334,comments:[{user:"GreenAnjali",av:"🌿",text:"The aloe vera looks beautiful! Native plants are the future."},{user:"WaterWarrior_Kiran",av:"🌊",text:"This should be mandatory for every household. Love it."}],time:"2d ago",bg:"linear-gradient(135deg,#0d3b2e,#145a32,#1e8449)",emoji:"🌵",liked:false,bookmarked:false,hasImg:false},
+  {id:"seed_5",user:"EcoMeera",avatar:"🦋",level:"Initiate",levelColor:"#00f5ff",caption:"My first water audit! 📊 Found out we were wasting 340L/day through a dripping tap we never noticed, the washing machine on half loads, and over-watering the balcony garden. Fixed all three. Saving ₹800/month on the water bill too 💰",tags:["ZeroWaste","SaveWater","AquaVita"],quest:"Home Water Audit",questXP:180,likes:156,comments:[{user:"RainMaster_Suresh",av:"⚡",text:"₹800 saved! The financial argument alone should convince everyone."},{user:"GreenAnjali",av:"🌿",text:"A dripping tap! Classic. So easy to miss but so wasteful."}],time:"3d ago",bg:"linear-gradient(135deg,#0a2540,#0e4d7b,#1565c0)",emoji:"📊",liked:false,bookmarked:false,hasImg:false},
+  {id:"seed_6",user:"NatureKavya",avatar:"🌸",level:"Protector",levelColor:"#b060ff",caption:"Morning ritual 🌅 Watering my rooftop garden at 6AM before the sun hits. Plants absorb 70% more water at this time vs afternoon. My garden uses 60% less water than it did 3 months ago. The birds love it too 🐦",tags:["NatureFirst","GreenLiving","Kerala","SaveWater"],quest:null,questXP:0,likes:421,comments:[{user:"EcoMeera",av:"🦋",text:"The birds visiting must make this extra special. Beautiful shot!"},{user:"AquaHero_Priya",av:"🌺",text:"Morning light on a rooftop garden — this is everything."}],time:"4d ago",bg:"linear-gradient(135deg,#0d2137,#1a3a5c,#2e6da4)",emoji:"🌅",liked:false,bookmarked:false,hasImg:false},
+];
+
+const STORIES_SEED = [
+  {user:'AquaHero_Priya',av:'🌺',caption:'Just set up my rain barrel! 40L collected already.',tags:['RainHarvest'],bg:'linear-gradient(135deg,#0a3d62,#0e7c7b)',emoji:'🌧️'},
+  {user:'WaterWarrior_Kiran',av:'🌊',caption:'Day 30 of the shower challenge done!',tags:['WaterHero'],bg:'linear-gradient(135deg,#0d1b4b,#1a237e)',emoji:'🚿'},
+  {user:'GreenAnjali',av:'🌿',caption:'Workshop day! 23 residents joined AquaVita.',tags:['ClimateAction'],bg:'linear-gradient(135deg,#1a0533,#4a235a)',emoji:'🎓'},
+  {user:'RainMaster_Suresh',av:'⚡',caption:'Garden transformation complete!',tags:['NatureFirst'],bg:'linear-gradient(135deg,#0d3b2e,#1e8449)',emoji:'🌵'},
+  {user:'NatureKavya',av:'🌸',caption:'Rooftop garden morning ritual.',tags:['NatureFirst'],bg:'linear-gradient(135deg,#0d2137,#2e6da4)',emoji:'🌅'},
+];
+
+const TOP_HEROES = [
+  {name:'GreenAnjali',av:'🌿',level:'Champion ⭐',xp:'4,200 XP'},
+  {name:'AquaHero_Priya',av:'🌺',level:'Guardian 🌿',xp:'2,850 XP'},
+  {name:'WaterWarrior_Kiran',av:'🌊',level:'Protector 🔱',xp:'3,100 XP'},
+  {name:'RainMaster_Suresh',av:'⚡',level:'Guardian 🌿',xp:'1,900 XP'},
+  {name:'NatureKavya',av:'🌸',level:'Protector 🔱',xp:'2,450 XP'},
+];
+
+const TRENDING = [
+  {name:'#SaveWater',count:'1.2K posts',num:'01'},
+  {name:'#AquaVita',count:'847 posts',num:'02'},
+  {name:'#RainHarvest',count:'534 posts',num:'03'},
+  {name:'#WaterHero',count:'421 posts',num:'04'},
+  {name:'#Kerala',count:'318 posts',num:'05'},
+  {name:'#NatureFirst',count:'276 posts',num:'06'},
+];
+
+// ============================================================
+// STATE
+// ============================================================
+let currentFilter = 'all';
+let cpImage = null;
+let cpTags = [];
+let cpQuest = null;
+let following = new Set();
+
+function loadUser(){try{return JSON.parse(localStorage.getItem('aq_user'))||null;}catch{return null;}}
+function loadProg(){try{return JSON.parse(localStorage.getItem('aq_progress'))||{xp:0};}catch{return{xp:0};}}
+function loadPosts(){try{return JSON.parse(localStorage.getItem('aq_comm_posts'))||[];}catch{return[];}}
+function savePosts(p){try{localStorage.setItem('aq_comm_posts',JSON.stringify(p));}catch(e){console.warn('Storage full, clearing old posts');const posts=loadPosts();if(posts.length>20)posts.splice(0,5);localStorage.setItem('aq_comm_posts',JSON.stringify(posts));}}
+function loadLikes(){try{return JSON.parse(localStorage.getItem('aq_comm_likes'))||{};}catch{return{};}}
+function saveLikes(l){localStorage.setItem('aq_comm_likes',JSON.stringify(l));}
+function loadBookmarks(){try{return JSON.parse(localStorage.getItem('aq_comm_bm'))||{};}catch{return{};}}
+function saveBookmarks(b){localStorage.setItem('aq_comm_bm',JSON.stringify(b));}
+function loadComments(){try{return JSON.parse(localStorage.getItem('aq_comm_comments'))||{};}catch{return{};}}
+function saveComments(c){localStorage.setItem('aq_comm_comments',JSON.stringify(c));}
+
+function navClick(){const u=loadUser();window.location.href=u&&u.isLoggedIn?'profile.html':'index.html';}
+function updateNav(){
+  const u=loadUser(),p=loadProg();
+  const pill=document.getElementById('nav-xp-pill'),btn=document.getElementById('nav-btn');
+  if(u&&u.isLoggedIn){
+    document.getElementById('nav-xp-count').textContent=(p.xp||0).toLocaleString();
+    pill.classList.add('visible');btn.textContent=u.name.split(' ')[0];btn.classList.add('signed-in');
+    // sidebar profile
+    document.getElementById('sidebar-profile').style.display='block';
+    document.getElementById('sb-name').textContent=u.name;
+    document.getElementById('sb-xp').textContent=(p.xp||0).toLocaleString()+' XP';
+    // create bar
+    document.getElementById('cp-av').textContent=getAvatarEmoji(p.level||1);
+    document.getElementById('create-av').textContent=getAvatarEmoji(p.level||1);
+    document.getElementById('cp-av').style.background=`linear-gradient(135deg,var(--vcyan),var(--vaqua))`;
+  }
+}
+function getAvatarEmoji(lvl){return['💧','🌊','🔱','⭐','👑'][Math.min((lvl||1)-1,4)];}
+
+// CURSOR
+const cur=document.getElementById('cursor'),curR=document.getElementById('cursor-ring');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cur.style.left=mx+'px';cur.style.top=my+'px';});
+(function aR(){rx+=(mx-rx)*.12;ry+=(my-ry)*.12;curR.style.left=rx+'px';curR.style.top=ry+'px';requestAnimationFrame(aR);})();
+document.addEventListener('click',e=>{const r=document.createElement('div');r.className='ripple';r.style.left=e.clientX+'px';r.style.top=e.clientY+'px';document.body.appendChild(r);setTimeout(()=>r.remove(),900);});
+
+function toast(title,body,dur=3000){const t=document.getElementById('toast');document.getElementById('toast-t').textContent=title;document.getElementById('toast-b').textContent=body;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),dur);}
+function xpFloat(amt,x,y){const el=document.createElement('div');el.className='xp-float';el.textContent='+'+amt+' XP';el.style.left=x+'px';el.style.top=y+'px';document.body.appendChild(el);setTimeout(()=>el.remove(),1500);}
+
+// ============================================================
+// STORIES
+// ============================================================
+function buildStories(){
+  const row=document.getElementById('stories-row');
+  row.innerHTML='';
+  const user=loadUser();
+  // Add story button
+  const addDiv=document.createElement('div');addDiv.className='story-item';
+  addDiv.innerHTML=`<div class="add-story-btn" onclick="openCP()" title="Share your story">＋</div><div class="story-name">Add Story</div>`;
+  row.appendChild(addDiv);
+  // User's own story
+  if(user&&user.isLoggedIn){
+    const posts=loadPosts().filter(p=>p.userId===user.name);
+    if(posts.length>0){
+      const latest=posts[0];
+      const sd=document.createElement('div');sd.className='story-item';
+      sd.onclick=()=>openStory({user:user.name,av:getAvatarEmoji(1),caption:latest.caption,tags:latest.tags,bg:'linear-gradient(135deg,var(--teal),var(--vcyan))',emoji:'💧'});
+      sd.innerHTML=`<div class="story-ring you"><div class="story-av">${getAvatarEmoji(1)}</div></div><div class="story-name">You</div>`;
+      row.appendChild(sd);
+    }
+  }
+  // Seed stories
+  STORIES_SEED.forEach((s,i)=>{
+    const div=document.createElement('div');div.className='story-item';
+    div.onclick=()=>openStory(s);
+    div.innerHTML=`<div class="story-ring ${i<3?'new':''}"><div class="story-av">${s.av}</div></div><div class="story-name">${s.user.split('_')[0]}</div>`;
+    row.appendChild(div);
+  });
+}
+
+let svTimeout=null;
+function openStory(s){
+  const modal=document.getElementById('sv-modal');
+  const bars=document.getElementById('sv-bars');
+  bars.innerHTML=`<div class="sv-prog"><div class="sv-prog-fill"></div></div>`;
+  const content=document.getElementById('sv-content');
+  content.style.background=s.bg||'var(--panel)';
+  content.style.display='flex';content.style.alignItems='center';content.style.justifyContent='center';content.style.fontSize='6rem';content.innerHTML=s.emoji||'💧';
+  document.getElementById('sv-av').textContent=s.av||'💧';
+  document.getElementById('sv-user').textContent=s.user||'User';
+  document.getElementById('sv-time').textContent=s.time||'Recent';
+  document.getElementById('sv-caption').textContent=s.caption||'';
+  document.getElementById('sv-tags').textContent=(s.tags||[]).map(t=>'#'+t).join(' ');
+  modal.classList.add('open');
+  clearTimeout(svTimeout);svTimeout=setTimeout(closeSV,4500);
+}
+function closeSV(){document.getElementById('sv-modal').classList.remove('open');clearTimeout(svTimeout);}
+document.getElementById('sv-modal').addEventListener('click',function(e){if(e.target===this)closeSV();});
+
+// ============================================================
+// BUILD FEED
+// ============================================================
+function getAllPosts(){
+  const userPosts=loadPosts();
+  // Merge seed + user posts, sort by time desc
+  const all=[...userPosts,...SEED_POSTS];
+  all.sort((a,b)=>new Date(b.createdAt||0)-new Date(a.createdAt||0)||0);
+  return all;
+}
+
+function filterPosts(posts){
+  if(currentFilter==='all')return posts;
+  if(currentFilter==='photo')return posts.filter(p=>p.imageData||p.hasImg);
+  return posts.filter(p=>(p.tags||[]).includes(currentFilter));
+}
+
+function setFilter(el,filter){
+  document.querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');currentFilter=filter;renderFeed();
+}
+
+function timeAgo(iso){
+  if(!iso)return 'recently';
+  const diff=(Date.now()-new Date(iso))/1000;
+  if(diff<60)return 'just now';
+  if(diff<3600)return Math.floor(diff/60)+'m ago';
+  if(diff<86400)return Math.floor(diff/3600)+'h ago';
+  return Math.floor(diff/86400)+'d ago';
+}
+
+function renderFeed(){
+  const feed=document.getElementById('feed');
+  const likes=loadLikes(),bm=loadBookmarks(),comments=loadComments();
+  const allPosts=getAllPosts();
+  const filtered=filterPosts(allPosts);
+  if(filtered.length===0){
+    feed.innerHTML=`<div class="empty-feed"><span class="empty-icon">💧</span><div class="empty-title">NO POSTS YET</div><div class="empty-sub">Be the first to share your water-saving impact!</div></div>`;
+    return;
+  }
+  feed.innerHTML='';
+  filtered.forEach((post,idx)=>{
+    const isLiked=!!likes[post.id];
+    const isBookmarked=!!bm[post.id];
+    const postComments=[...(post.comments||[]),...(comments[post.id]||[])];
+    const card=document.createElement('div');
+    card.className='post-card';card.style.animationDelay=(idx*0.06)+'s';
+    card.id='post-'+post.id;
+
+    // Image content
+    let imgHTML='';
+    if(post.imageData){
+      imgHTML=`<div class="post-img-wrap"><img class="post-img" src="${post.imageData}" alt="post" loading="lazy"></div>`;
+    } else {
+      imgHTML=`<div class="post-img-wrap"><div class="post-img-placeholder" style="background:${post.bg||'var(--panel)'}"><span class="p-emoji">${post.emoji||'💧'}</span></div></div>`;
+    }
+
+    // Tags overlay
+    const tagsOverlay=post.tags&&post.tags.length?`<div class="post-tags-overlay">${post.tags.map(t=>`<span class="post-tag-badge">#${t}</span>`).join('')}</div>`:'';
+
+    // Quest badge
+    const questBadge=post.quest?`<div style="padding:.4rem 1.2rem;background:rgba(255,193,7,.06);border-bottom:1px solid rgba(255,193,7,.08);font-size:.48rem;color:var(--vgold);letter-spacing:.08em;">⚡ Quest: ${post.quest} &nbsp;·&nbsp; +${post.questXP} XP</div>`:'';
+
+    // Comments preview
+    const previewComments=postComments.slice(0,2).map(c=>`
+      <div class="comment-row">
+        <div class="comment-av">${c.av||'💧'}</div>
+        <div class="comment-body">
+          <div class="comment-user">${c.user}</div>
+          <div class="comment-text">${c.text}</div>
+        </div>
+      </div>`).join('');
+
+    const moreComments=postComments.length>2?`<div class="view-more-comments" onclick="expandComments('${post.id}')">View all ${postComments.length} comments</div>`:'';
+
+    card.innerHTML=`
+      ${questBadge}
+      <div class="post-header">
+        <div class="post-av">
+          <div class="post-av-emoji">${post.avatar||'💧'}</div>
+          <div class="post-av-badge" style="background:${post.levelColor||'var(--vcyan)'}">★</div>
+        </div>
+        <div class="post-user-info">
+          <div class="post-username">${post.user||'Unknown Hero'}</div>
+          <div class="post-meta">
+            <span class="level-tag">${post.level||'Initiate'}</span>
+            <span>·</span>
+            <span>${post.time||timeAgo(post.createdAt)}</span>
+          </div>
+        </div>
+        <button class="post-menu-btn">···</button>
+      </div>
+      <div style="position:relative;">
+        ${imgHTML}
+        ${tagsOverlay}
+      </div>
+      <div class="post-actions">
+        <button class="post-action-btn ${isLiked?'liked':''}" onclick="toggleLike('${post.id}',this)">
+          <span class="pa-icon">${isLiked?'❤️':'🤍'}</span>
+          <span class="like-count">${(post.likes||0)+(isLiked?0:0)}</span>
+        </button>
+        <button class="post-action-btn" onclick="focusComment('${post.id}')">
+          <span class="pa-icon">💬</span>
+          <span>${postComments.length}</span>
+        </button>
+        <button class="post-action-btn" onclick="sharePost('${post.id}')">
+          <span class="pa-icon">↗</span>
+          <span>Share</span>
+        </button>
+        <button class="post-action-btn ${isBookmarked?'bookmarked':''}" onclick="toggleBookmark('${post.id}',this)" style="margin-left:auto;">
+          <span class="pa-icon">${isBookmarked?'🔖':'📎'}</span>
+        </button>
+      </div>
+      <div class="post-caption">
+        <div class="post-caption-text">${post.caption||''}</div>
+        <div class="post-hashtags">${(post.tags||[]).map(t=>`<span class="post-hashtag" onclick="setTagFilter('${t}')">#${t}</span>`).join('')}</div>
+        <div class="post-time">${post.time||timeAgo(post.createdAt)}</div>
+      </div>
+      <div class="post-comments" id="comments-${post.id}">
+        ${previewComments}
+        ${moreComments}
+        <div class="comment-input-row">
+          <div class="comment-av" style="width:28px;height:28px;font-size:.8rem;">${(loadUser()&&loadUser().name)||'💧'}</div>
+          <input class="comment-input" id="ci-${post.id}" placeholder="Add a comment..." onkeydown="if(event.key==='Enter')postComment('${post.id}')">
+          <button class="comment-send" onclick="postComment('${post.id}')">➤</button>
+        </div>
+      </div>
+    `;
+    feed.appendChild(card);
+  });
+
+  // Update sidebar stats
+  document.getElementById('si-posts').textContent=(loadPosts().length+SEED_POSTS.length).toString();
+}
+
+function setTagFilter(tag){
+  const chips=document.querySelectorAll('.filter-chip');
+  chips.forEach(c=>{c.classList.remove('active');if(c.dataset.filter===tag)c.classList.add('active');});
+  currentFilter=tag;renderFeed();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// ============================================================
+// INTERACTIONS
+// ============================================================
+function toggleLike(postId,btn){
+  const likes=loadLikes();
+  const isLiked=!!likes[postId];
+  if(isLiked){delete likes[postId];}else{likes[postId]=true;}
+  saveLikes(likes);
+  const icon=btn.querySelector('.pa-icon');
+  const count=btn.querySelector('.like-count');
+  const allPosts=[...loadPosts(),...SEED_POSTS];
+  const post=allPosts.find(p=>p.id===postId);
+  const base=post?post.likes||0:0;
+  if(!isLiked){
+    btn.classList.add('liked');icon.textContent='❤️';count.textContent=base+1;
+    xpFloat(5,btn.getBoundingClientRect().x,btn.getBoundingClientRect().y);
+  }else{
+    btn.classList.remove('liked');icon.textContent='🤍';count.textContent=base;
+  }
+}
+
+function toggleBookmark(postId,btn){
+  const bm=loadBookmarks();const isBm=!!bm[postId];
+  if(isBm){delete bm[postId];}else{bm[postId]=true;}
+  saveBookmarks(bm);
+  const icon=btn.querySelector('.pa-icon');
+  if(!isBm){btn.classList.add('bookmarked');icon.textContent='🔖';toast('🔖 Saved','Post saved to your bookmarks.');}
+  else{btn.classList.remove('bookmarked');icon.textContent='📎';}
+}
+
+function focusComment(postId){
+  const inp=document.getElementById('ci-'+postId);
+  if(inp){inp.focus();inp.scrollIntoView({behavior:'smooth',block:'center'});}
+}
+
+function postComment(postId){
+  const inp=document.getElementById('ci-'+postId);
+  const text=(inp?.value||'').trim();
+  if(!text)return;
+  const user=loadUser();
+  const c=loadComments();if(!c[postId])c[postId]=[];
+  const newComment={user:user?user.name:'Anonymous Hero',av:user?getAvatarEmoji(1):'💧',text,time:new Date().toISOString()};
+  c[postId].push(newComment);saveComments(c);
+  inp.value='';
+  // Add comment to DOM
+  const commSection=document.getElementById('comments-'+postId);
+  if(commSection){
+    const row=document.createElement('div');row.className='comment-row';
+    row.style.animation='fadeUp .3s ease';
+    row.innerHTML=`<div class="comment-av">${newComment.av}</div><div class="comment-body"><div class="comment-user">${newComment.user}</div><div class="comment-text">${newComment.text}</div></div>`;
+    commSection.insertBefore(row,commSection.querySelector('.comment-input-row'));
+  }
+  toast('💬 Comment Posted','Your comment is live!');
+}
+
+function expandComments(postId){
+  const c=loadComments();const all=[...(SEED_POSTS.find(p=>p.id===postId)?.comments||[]),...(c[postId]||[])];
+  const section=document.getElementById('comments-'+postId);
+  const vmc=section.querySelector('.view-more-comments');
+  if(vmc)vmc.remove();
+  const inp=section.querySelector('.comment-input-row');
+  all.forEach(cm=>{
+    const row=document.createElement('div');row.className='comment-row';
+    row.innerHTML=`<div class="comment-av">${cm.av||'💧'}</div><div class="comment-body"><div class="comment-user">${cm.user}</div><div class="comment-text">${cm.text}</div></div>`;
+    section.insertBefore(row,inp);
+  });
+}
+
+function sharePost(postId){
+  const text=`Check out this water-saving post on AquaVita! 💧 https://aquavita.app/community#${postId}`;
+  if(navigator.share){navigator.share({title:'AquaVita Community',text,url:'https://aquavita.app/community'});}
+  else{navigator.clipboard.writeText(text).then(()=>toast('🔗 Link Copied!','Share this post with your network.'));}
+}
+
+// ============================================================
+// CREATE POST MODAL
+// ============================================================
+function openCP(){
+  const user=loadUser();
+  if(!user||!user.isLoggedIn){toast('⚠ Sign In Required','Sign in on the home page to post in the community.');return;}
+  document.getElementById('cp-uname').textContent=user.name;
+  document.getElementById('cp-modal').classList.add('open');
+}
+function closeCP(){document.getElementById('cp-modal').classList.remove('open');resetCP();}
+document.getElementById('cp-modal').addEventListener('click',function(e){if(e.target===this)closeCP();});
+
+function cpFileSelect(e){const f=e.target.files[0];if(f)cpProcess(f);}
+function cpDrop(e){e.preventDefault();document.getElementById('img-drop').classList.remove('drag-over');const f=e.dataTransfer.files[0];if(f&&f.type.startsWith('image/'))cpProcess(f);}
+
+function cpProcess(file){
+  // Compress before storing
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    const img=new Image();
+    img.onload=()=>{
+      const maxW=800,maxH=800;let w=img.width,h=img.height;
+      if(w>maxW){h=h*maxW/w;w=maxW;}if(h>maxH){w=w*maxH/h;h=maxH;}
+      const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;
+      const ctx=canvas.getContext('2d');ctx.drawImage(img,0,0,w,h);
+      cpImage=canvas.toDataURL('image/jpeg',0.75);
+      document.getElementById('cp-preview').src=cpImage;
+      document.getElementById('img-drop').style.display='none';
+      document.getElementById('img-preview-area').style.display='block';
+    };
+    img.src=ev.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+function removeImg(){cpImage=null;document.getElementById('img-drop').style.display='';document.getElementById('img-preview-area').style.display='none';document.getElementById('cp-fi').value='';}
+function toggleTag(el){el.classList.toggle('selected');const tag=el.dataset.tag;if(cpTags.includes(tag))cpTags=cpTags.filter(t=>t!==tag);else cpTags.push(tag);}
+function toggleQuest(el){document.querySelectorAll('.cp-quest-chip').forEach(c=>c.classList.remove('selected'));el.classList.toggle('selected');cpQuest=el.classList.contains('selected')?el.dataset.q:null;}
+
+function submitPost(){
+  const user=loadUser();if(!user||!user.isLoggedIn)return;
+  const caption=document.getElementById('cp-caption').value.trim();
+  if(!caption&&!cpImage){toast('⚠ Empty Post','Add a photo or write a caption before posting.');return;}
+  const prog=loadProg();
+  const post={
+    id:'up_'+Date.now(),
+    userId:user.name,user:user.name,
+    avatar:getAvatarEmoji(prog.level||1),
+    level:['Initiate','Conservationist','Guardian','Protector','Legend'][Math.min((prog.level||1)-1,4)],
+    levelColor:['#00f5ff','#00e5cc','#b060ff','#ffc107','#ff9f43'][(prog.level||1)-1]||'#00f5ff',
+    caption,tags:cpTags.length?[...cpTags]:['SaveWater','AquaVita'],
+    quest:cpQuest,questXP:cpQuest?80:0,
+    imageData:cpImage,
+    likes:0,comments:[],
+    bg:'linear-gradient(135deg,var(--teal),var(--vcyan))',emoji:'💧',
+    createdAt:new Date().toISOString(),time:'just now',hasImg:!!cpImage
+  };
+  const posts=loadPosts();posts.unshift(post);savePosts(posts);
+  // Award XP for posting
+  const p=loadProg();p.xp=(p.xp||0)+50;localStorage.setItem('aq_progress',JSON.stringify(p));
+  document.getElementById('nav-xp-count').textContent=p.xp.toLocaleString();
+  closeCP();renderFeed();buildStories();
+  toast('🌊 Post Shared!','Your impact is now visible to the community. +50 XP awarded!');
+  xpFloat(50,window.innerWidth/2,window.innerHeight/2);
+  // Scroll to top of feed
+  document.getElementById('feed').scrollIntoView({behavior:'smooth'});
+}
+
+function resetCP(){
+  cpImage=null;cpTags=[];cpQuest=null;
+  document.getElementById('cp-caption').value='';
+  document.getElementById('img-drop').style.display='';
+  document.getElementById('img-preview-area').style.display='none';
+  document.getElementById('cp-fi').value='';
+  document.querySelectorAll('.cp-tag-chip,.cp-quest-chip').forEach(c=>c.classList.remove('selected'));
+}
+
+// ============================================================
+// SIDEBAR
+// ============================================================
+function buildSidebar(){
+  // Trending
+  const tDiv=document.getElementById('trending-tags');
+  tDiv.innerHTML=TRENDING.map(t=>`<div class="trending-tag" onclick="setTagFilter('${t.name.slice(1)}')"><span class="tt-num">${t.num}</span><span class="tt-name">${t.name}</span><span class="tt-count">${t.count}</span></div>`).join('');
+  // Top Heroes
+  const hDiv=document.getElementById('top-heroes');
+  hDiv.innerHTML=TOP_HEROES.map((h,i)=>`<div class="hero-row"><div class="hero-av-sm">${h.av}</div><div><div class="hero-name">${h.name}</div><div class="hero-level">${h.level} · ${h.xp}</div></div><button class="hero-follow-btn" onclick="toggleFollow(this,'${h.name}')">${following.has(h.name)?'Following':'Follow'}</button></div>`).join('');
+}
+
+function toggleFollow(btn,name){
+  if(following.has(name)){following.delete(name);btn.textContent='Follow';btn.classList.remove('following');}
+  else{following.add(name);btn.textContent='Following';btn.classList.add('following');toast('✓ Following','You are now following '+name);}
+}
+
+// ============================================================
+// INIT
+// ============================================================
+updateNav();buildStories();buildSidebar();renderFeed();
+</script>
+</body>
+</html>

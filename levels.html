@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AquaVita — Levels & Quests</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Space+Mono:wght@400;700&family=Orbitron:wght@400;700;900&family=IBM+Plex+Mono:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+:root{--void:#03060f;--deep:#020d1a;--panel:#0a1628;--border:#0f2040;--vcyan:#00f5ff;--vaqua:#00e5cc;--vgold:#ffc107;--emerald:#00e676;--ruby:#ff3d57;--legendary:#ff9f43;--purple:#b060ff;--muted:#4a7090;--foam:#90e0ef;--white:#f0faff;--electric:#00b4ff;--teal:#0e7c7b;}
+*{margin:0;padding:0;box-sizing:border-box;}html{scroll-behavior:smooth;}
+body{background:var(--void);color:var(--white);font-family:'IBM Plex Mono',monospace;overflow-x:hidden;cursor:none;min-height:100vh;}
+body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,rgba(0,245,255,0.012) 0px,transparent 1px,transparent 3px);pointer-events:none;z-index:9994;}
+.cursor{position:fixed;width:10px;height:10px;border-radius:50%;background:var(--vcyan);pointer-events:none;z-index:9999;mix-blend-mode:screen;transform:translate(-50%,-50%);}
+.cursor-ring{position:fixed;width:36px;height:36px;border-radius:50%;border:1px solid rgba(0,245,255,0.4);pointer-events:none;z-index:9998;transition:all 0.1s ease;transform:translate(-50%,-50%);}
+.ripple{position:fixed;border-radius:50%;border:1px solid rgba(0,245,255,0.5);pointer-events:none;z-index:9993;transform:translate(-50%,-50%);animation:rippleOut 0.9s ease forwards;}
+@keyframes rippleOut{from{width:0;height:0;opacity:0.7;}to{width:80px;height:80px;opacity:0;}}
+nav{position:fixed;top:0;left:0;right:0;z-index:1000;padding:1.2rem 4rem;display:flex;justify-content:space-between;align-items:center;background:rgba(3,6,15,0.97);border-bottom:1px solid rgba(0,245,255,0.06);backdrop-filter:blur(10px);}
+.nav-logo{font-family:'Orbitron',monospace;font-size:1rem;letter-spacing:0.3em;color:var(--vcyan);text-shadow:0 0 15px rgba(0,245,255,0.4);text-decoration:none;font-weight:700;}
+.nav-links{display:flex;gap:2rem;list-style:none;}
+.nav-links a{color:var(--foam);text-decoration:none;font-family:'Space Mono',monospace;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;position:relative;transition:color 0.3s;opacity:0.65;}
+.nav-links a::after{content:'';position:absolute;bottom:-4px;left:0;width:0;height:1px;background:var(--vcyan);transition:width 0.3s;}
+.nav-links a:hover,.nav-links a.active{color:var(--vcyan);opacity:1;}
+.nav-links a:hover::after,.nav-links a.active::after{width:100%;}
+.nav-right{display:flex;align-items:center;gap:1rem;}
+.nav-xp-pill{display:none;align-items:center;gap:0.5rem;background:rgba(0,245,255,0.1);border:1px solid rgba(0,245,255,0.25);border-radius:100px;padding:0.35rem 0.9rem;font-size:0.58rem;color:var(--vcyan);}
+.nav-xp-pill.visible{display:flex;}
+.xp-dot{width:5px;height:5px;border-radius:50%;background:var(--vcyan);animation:dp 2s infinite;}
+@keyframes dp{0%,100%{opacity:.4;transform:scale(1);}50%{opacity:1;transform:scale(1.3);}}
+.nav-btn{font-size:0.58rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--void);background:var(--vcyan);border:none;padding:0.5rem 1.1rem;cursor:pointer;transition:all .3s;clip-path:polygon(8px 0%,100% 0%,calc(100% - 8px) 100%,0% 100%);}
+.nav-btn:hover{background:var(--vaqua);}
+.nav-btn.signed-in{background:transparent;color:var(--foam);border:1px solid rgba(0,245,255,.2);clip-path:none;}
+.hud-bar{position:fixed;top:60px;left:0;right:0;height:40px;background:rgba(6,13,31,0.95);border-bottom:1px solid rgba(0,245,255,0.05);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:space-between;padding:0 4rem;z-index:990;}
+.hud-stat{font-size:0.55rem;color:var(--muted);letter-spacing:0.1em;}
+.hud-stat span{color:var(--vgold);font-weight:700;}
+.hud-right{display:flex;gap:2rem;}
+.page{padding:110px 0 6rem;}
+.level-strip{padding:0 4rem 3rem;display:flex;gap:0;position:relative;}
+.level-strip::before{content:'';position:absolute;top:30px;left:4rem;right:4rem;height:2px;background:rgba(255,255,255,0.04);z-index:0;}
+.level-tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:0.5rem;position:relative;z-index:1;cursor:pointer;padding:0.5rem;transition:all 0.3s;}
+.level-tab-circle{width:60px;height:60px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.5rem;border:2px solid rgba(255,255,255,0.08);transition:all 0.4s;}
+.level-tab-line{position:absolute;top:30px;left:calc(50% + 30px);right:calc(-50% + 30px);height:2px;background:rgba(255,255,255,0.04);z-index:-1;}
+.level-tab:last-child .level-tab-line{display:none;}
+.level-tab-label{font-family:'Orbitron',monospace;font-size:0.48rem;letter-spacing:0.15em;color:var(--muted);text-align:center;transition:color 0.3s;}
+.level-tab-name{font-size:0.4rem;color:var(--muted);letter-spacing:0.08em;text-align:center;}
+.level-tab.locked .level-tab-circle{filter:grayscale(1) brightness(0.25);cursor:not-allowed;}
+.level-panel{margin:0 4rem 3rem;border:1px solid rgba(255,255,255,0.05);background:rgba(10,22,40,0.6);display:none;animation:panelIn 0.4s ease;}
+.level-panel.visible{display:block;}
+@keyframes panelIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+.level-panel-header{padding:2rem 3rem;border-bottom:1px solid rgba(255,255,255,0.04);display:flex;align-items:center;gap:2rem;flex-wrap:wrap;}
+.level-panel-icon{font-size:3rem;}
+.level-panel-eyebrow{font-size:0.5rem;letter-spacing:0.4em;margin-bottom:0.4rem;}
+.level-panel-title{font-family:'Orbitron',monospace;font-size:1.8rem;font-weight:900;margin-bottom:0.3rem;}
+.level-panel-desc{font-size:0.6rem;color:var(--muted);max-width:580px;line-height:1.7;letter-spacing:0.04em;}
+.level-panel-xp{margin-left:auto;text-align:center;flex-shrink:0;}
+.lp-xp-num{font-family:'Orbitron',monospace;font-size:2.2rem;font-weight:900;color:var(--vgold);}
+.lp-xp-label{font-size:0.48rem;color:var(--muted);letter-spacing:0.2em;margin-top:0.2rem;}
+.level-progress-bar{height:3px;background:rgba(255,255,255,0.04);overflow:hidden;}
+.level-progress-fill{height:100%;transition:width 0.8s ease;}
+.level-progress-label{padding:0.5rem 3rem;font-size:0.5rem;color:var(--muted);display:flex;justify-content:space-between;letter-spacing:0.08em;}
+.tasks-list{padding:0 3rem 2rem;}
+.task-card{background:rgba(10,22,40,0.8);border:1px solid rgba(255,255,255,0.04);margin-bottom:2px;padding:1.6rem 2rem;display:grid;grid-template-columns:44px 1fr auto;gap:1.5rem;align-items:center;position:relative;overflow:hidden;transition:all 0.3s;}
+.task-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:rgba(255,255,255,0.05);transition:background 0.4s;}
+.task-card:hover{background:rgba(15,32,64,0.9);border-color:rgba(255,255,255,0.08);}
+.task-card.verified::before{background:var(--emerald);}
+.task-card.verified{background:rgba(0,230,118,0.03);border-color:rgba(0,230,118,0.12);}
+.task-num{font-family:'Orbitron',monospace;font-size:1.1rem;font-weight:900;color:rgba(255,255,255,0.1);}
+.task-card.verified .task-num{color:var(--emerald);}
+.task-rarity{font-size:0.46rem;letter-spacing:0.28em;text-transform:uppercase;margin-bottom:0.45rem;display:flex;align-items:center;gap:0.4rem;}
+.rarity-pip{width:5px;height:5px;border-radius:50%;}
+.task-name{font-family:'Orbitron',monospace;font-size:0.75rem;font-weight:700;letter-spacing:0.04em;margin-bottom:0.4rem;}
+.task-desc{font-size:0.58rem;color:var(--muted);line-height:1.7;max-width:580px;}
+.task-meta{display:flex;gap:0.6rem;margin-top:0.7rem;flex-wrap:wrap;}
+.tc{display:inline-flex;align-items:center;gap:0.3rem;padding:0.22rem 0.6rem;font-size:0.48rem;border-radius:2px;letter-spacing:0.04em;}
+.tc-xp{background:rgba(0,245,255,0.07);border:1px solid rgba(0,245,255,0.15);color:var(--vcyan);}
+.tc-water{background:rgba(0,230,118,0.07);border:1px solid rgba(0,230,118,0.15);color:var(--emerald);}
+.tc-type{background:rgba(180,96,255,0.07);border:1px solid rgba(180,96,255,0.15);color:var(--purple);}
+.tc-ref{background:rgba(255,193,7,0.07);border:1px solid rgba(255,193,7,0.15);color:var(--vgold);}
+.tc-done{background:rgba(0,230,118,0.07);border:1px solid rgba(0,230,118,0.15);color:var(--emerald);}
+.task-actions{display:flex;flex-direction:column;gap:0.5rem;align-items:flex-end;min-width:130px;}
+.verify-btn{font-family:'Orbitron',monospace;font-size:0.52rem;letter-spacing:0.12em;padding:0.55rem 1.1rem;border:none;cursor:pointer;transition:all 0.3s;clip-path:polygon(8px 0%,100% 0%,calc(100% - 8px) 100%,0% 100%);color:var(--void);font-weight:700;}
+.verify-btn:hover{transform:translateY(-1px);filter:brightness(1.15);}
+.v-badge{display:none;align-items:center;gap:0.4rem;font-family:'Orbitron',monospace;font-size:0.5rem;color:var(--emerald);letter-spacing:0.1em;}
+.task-card.verified .v-badge{display:flex;}
+.task-card.verified .verify-btn{display:none;}
+.v-badge-icon{width:22px;height:22px;border-radius:50%;background:rgba(0,230,118,0.12);border:1px solid var(--emerald);display:flex;align-items:center;justify-content:center;font-size:0.65rem;}
+/* MODALS */
+.modal-overlay{position:fixed;inset:0;z-index:10000;background:rgba(3,6,15,0.96);backdrop-filter:blur(15px);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity 0.3s;}
+.modal-overlay.open{opacity:1;pointer-events:all;}
+.vm-box{background:linear-gradient(135deg,#060f20,#0a1628);border:1px solid rgba(0,245,255,0.14);width:90%;max-width:600px;transform:translateY(20px) scale(0.97);transition:transform 0.4s cubic-bezier(0.34,1.56,0.64,1);box-shadow:0 0 80px rgba(0,245,255,0.08);overflow:hidden;}
+.modal-overlay.open .vm-box,.modal-overlay.open .rm-box{transform:translateY(0) scale(1);}
+.vm-header{padding:1.6rem 2rem;border-bottom:1px solid rgba(255,255,255,0.05);display:flex;align-items:center;justify-content:space-between;}
+.vm-title{font-family:'Orbitron',monospace;font-size:0.68rem;letter-spacing:0.2em;color:var(--vcyan);}
+.m-close{background:none;border:none;color:var(--muted);font-size:1.3rem;cursor:pointer;transition:color 0.2s;line-height:1;}
+.m-close:hover{color:var(--white);}
+.vm-body{padding:1.8rem 2rem;}
+#vm-task-h{font-family:'Orbitron',monospace;font-size:0.75rem;color:var(--white);margin-bottom:0.4rem;}
+#vm-hint-p{font-size:0.57rem;color:var(--muted);margin-bottom:1.4rem;line-height:1.7;letter-spacing:0.03em;}
+/* upload */
+.upload-zone{border:2px dashed rgba(0,245,255,0.18);padding:2.5rem 2rem;text-align:center;cursor:pointer;transition:all 0.3s;}
+.upload-zone:hover,.upload-zone.drag-over{border-color:rgba(0,245,255,0.5);background:rgba(0,245,255,0.03);}
+.upload-icon{font-size:2.5rem;margin-bottom:0.8rem;display:block;opacity:0.5;}
+.upload-title{font-family:'Orbitron',monospace;font-size:0.65rem;letter-spacing:0.12em;color:var(--foam);margin-bottom:0.4rem;}
+.upload-sub{font-size:0.55rem;color:var(--muted);line-height:1.6;}
+.upload-hint{margin-top:0.8rem;font-size:0.52rem;color:var(--vcyan);opacity:0.65;}
+.upload-or{font-size:0.5rem;color:var(--muted);margin:0.8rem 0;}
+.browse-btn{font-family:'Orbitron',monospace;font-size:0.55rem;letter-spacing:0.1em;padding:0.6rem 1.8rem;background:rgba(0,245,255,0.08);border:1px solid rgba(0,245,255,0.25);color:var(--vcyan);cursor:pointer;transition:all .3s;}
+.browse-btn:hover{background:rgba(0,245,255,0.16);}
+/* preview */
+.preview-zone{position:relative;}
+.preview-img{width:100%;max-height:260px;object-fit:contain;display:block;background:#030f20;}
+.img-scan-overlay{position:absolute;inset:0;pointer-events:none;overflow:hidden;}
+.scan-line{position:absolute;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--vcyan),rgba(0,245,255,.9),var(--vcyan),transparent);box-shadow:0 0 10px var(--vcyan);display:none;top:0;}
+.grid-overlay{position:absolute;inset:0;background-image:linear-gradient(rgba(0,245,255,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(0,245,255,.04) 1px,transparent 1px);background-size:30px 30px;display:none;}
+.img-corner{position:absolute;width:14px;height:14px;border-color:var(--vcyan);border-style:solid;}
+.ic-tl{top:6px;left:6px;border-width:2px 0 0 2px;}.ic-tr{top:6px;right:6px;border-width:2px 2px 0 0;}.ic-bl{bottom:6px;left:6px;border-width:0 0 2px 2px;}.ic-br{bottom:6px;right:6px;border-width:0 2px 2px 0;}
+.preview-actions{display:flex;gap:0.7rem;margin-top:0.9rem;}
+.re-upload-btn{flex:1;padding:0.55rem;font-size:0.52rem;background:rgba(255,61,87,.07);border:1px solid rgba(255,61,87,.18);color:var(--ruby);cursor:pointer;letter-spacing:0.1em;transition:all .3s;}
+.re-upload-btn:hover{background:rgba(255,61,87,.14);}
+.analyze-btn{flex:2;padding:0.7rem;font-family:'Orbitron',monospace;font-size:0.6rem;letter-spacing:0.18em;background:linear-gradient(135deg,var(--teal),var(--vcyan));color:var(--void);border:none;cursor:pointer;clip-path:polygon(8px 0%,100% 0%,calc(100% - 8px) 100%,0% 100%);font-weight:700;transition:all .3s;}
+.analyze-btn:hover{filter:brightness(1.1);}
+/* analyzing */
+.analyzing-state{display:none;padding:2rem;text-align:center;}
+.a-spinner{width:54px;height:54px;border-radius:50%;border:2px solid rgba(0,245,255,0.1);border-top-color:var(--vcyan);animation:spin .8s linear infinite;margin:0 auto 1.2rem;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.a-text{font-family:'Orbitron',monospace;font-size:0.6rem;letter-spacing:0.2em;color:var(--vcyan);margin-bottom:1.2rem;}
+.a-steps{display:flex;flex-direction:column;gap:0.5rem;text-align:left;max-width:340px;margin:0 auto;}
+.a-step{font-size:0.56rem;color:var(--muted);display:flex;align-items:center;gap:0.7rem;padding:0.4rem 0.7rem;border:1px solid rgba(255,255,255,0.03);}
+.a-step.done{color:var(--emerald);border-color:rgba(0,230,118,0.12);background:rgba(0,230,118,0.03);}
+.a-step.active{color:var(--vcyan);border-color:rgba(0,245,255,0.18);background:rgba(0,245,255,0.03);}
+.a-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;background:rgba(255,255,255,0.08);}
+/* verified */
+.verified-state{display:none;padding:2.2rem;text-align:center;}
+.v-check{width:80px;height:80px;border-radius:50%;background:rgba(0,230,118,0.09);border:2px solid var(--emerald);display:flex;align-items:center;justify-content:center;font-size:2.2rem;margin:0 auto 1.2rem;animation:vPop .5s cubic-bezier(.34,1.56,.64,1);}
+@keyframes vPop{from{transform:scale(0) rotate(-20deg);opacity:0;}to{transform:scale(1) rotate(0);opacity:1;}}
+.v-title{font-family:'Orbitron',monospace;font-size:1.1rem;font-weight:900;color:var(--emerald);margin-bottom:0.4rem;}
+.v-sub{font-size:0.6rem;color:var(--muted);letter-spacing:0.08em;margin-bottom:.8rem;}
+.v-xp{font-family:'Orbitron',monospace;font-size:2rem;font-weight:900;color:var(--vgold);text-shadow:0 0 20px rgba(255,193,7,.5);margin:.6rem 0;}
+.v-detect{display:flex;align-items:center;gap:0.5rem;background:rgba(0,230,118,0.05);border:1px solid rgba(0,230,118,0.12);padding:.65rem 1rem;font-size:0.55rem;color:var(--emerald);margin:.3rem auto;max-width:340px;text-align:left;letter-spacing:0.04em;}
+.v-claim-btn{font-family:'Orbitron',monospace;font-size:0.6rem;letter-spacing:0.15em;padding:.75rem 2.2rem;background:linear-gradient(135deg,var(--vaqua),var(--vcyan));color:var(--void);border:none;cursor:pointer;clip-path:polygon(10px 0%,100% 0%,calc(100% - 10px) 100%,0% 100%);transition:all .3s;font-weight:700;margin-top:1.2rem;}
+.v-claim-btn:hover{box-shadow:0 0 25px rgba(0,245,255,.3);transform:translateY(-2px);}
+/* REFERRAL MODAL */
+.rm-box{background:linear-gradient(135deg,#060f20,#0a1628);border:1px solid rgba(255,193,7,0.14);width:90%;max-width:540px;transform:translateY(20px) scale(0.97);transition:transform 0.4s cubic-bezier(0.34,1.56,0.64,1);box-shadow:0 0 80px rgba(255,193,7,0.08);overflow:hidden;}
+.rm-header{padding:1.6rem 2rem;border-bottom:1px solid rgba(255,193,7,0.09);display:flex;align-items:center;justify-content:space-between;}
+.rm-title{font-family:'Orbitron',monospace;font-size:0.68rem;letter-spacing:0.2em;color:var(--vgold);}
+.rm-body{padding:1.8rem 2rem;}
+.rm-hero{text-align:center;margin-bottom:1.5rem;}
+.rm-icon{font-size:2.5rem;display:block;margin-bottom:.6rem;}
+.rm-req{font-family:'Orbitron',monospace;font-size:1.1rem;font-weight:900;color:var(--vgold);}
+.rm-req-l{font-size:0.55rem;color:var(--muted);letter-spacing:0.12em;margin-top:.2rem;}
+.rm-prog-wrap{background:rgba(255,193,7,0.04);border:1px solid rgba(255,193,7,0.08);padding:1rem 1.3rem;margin-bottom:1.2rem;}
+.rm-prog-lbl{font-size:0.5rem;color:var(--muted);letter-spacing:0.1em;display:flex;justify-content:space-between;margin-bottom:.4rem;}
+.rm-prog-lbl span:last-child{color:var(--vgold);}
+.rm-track{height:5px;background:rgba(255,193,7,0.07);border:1px solid rgba(255,193,7,0.12);overflow:hidden;}
+.rm-fill{height:100%;background:linear-gradient(90deg,var(--vgold),var(--legendary));transition:width .8s ease;}
+.rm-link-box{background:rgba(0,0,0,0.35);border:1px solid rgba(255,193,7,0.18);padding:.9rem 1.1rem;display:flex;align-items:center;gap:.8rem;margin-bottom:.8rem;}
+.rm-link-text{font-size:0.57rem;color:var(--vcyan);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.rm-copy-btn{font-family:'Orbitron',monospace;font-size:0.5rem;letter-spacing:0.1em;padding:.45rem .9rem;background:rgba(255,193,7,0.09);border:1px solid rgba(255,193,7,0.28);color:var(--vgold);cursor:pointer;white-space:nowrap;transition:all .3s;}
+.rm-copy-btn:hover{background:rgba(255,193,7,0.18);}
+.rm-copy-btn.copied{color:var(--emerald);border-color:rgba(0,230,118,.28);}
+.rm-share-row{display:flex;gap:.6rem;margin-bottom:1.2rem;}
+.rm-share-btn{flex:1;padding:.65rem;font-family:'Orbitron',monospace;font-size:0.5rem;letter-spacing:.08em;border:1px solid;cursor:pointer;transition:all .3s;display:flex;align-items:center;justify-content:center;gap:.4rem;}
+.rm-wa{background:rgba(37,211,102,0.07);border-color:rgba(37,211,102,.22);color:#25D366;}
+.rm-wa:hover{background:rgba(37,211,102,.14);}
+.rm-tw{background:rgba(29,161,242,0.07);border-color:rgba(29,161,242,.22);color:#1DA1F2;}
+.rm-tw:hover{background:rgba(29,161,242,.14);}
+.rm-friends{border-top:1px solid rgba(255,255,255,0.04);padding-top:1rem;margin-bottom:1rem;}
+.rm-friends-title{font-size:0.5rem;color:var(--muted);letter-spacing:0.2em;margin-bottom:.7rem;}
+.rm-friend-row{display:flex;align-items:center;gap:.7rem;padding:.45rem 0;border-bottom:1px solid rgba(255,255,255,0.02);font-size:0.55rem;color:var(--foam);opacity:.75;}
+.rm-f-av{width:22px;height:22px;border-radius:50%;background:rgba(0,245,255,0.08);border:1px solid rgba(0,245,255,0.18);display:flex;align-items:center;justify-content:center;font-size:.6rem;flex-shrink:0;}
+.rm-f-check{margin-left:auto;color:var(--emerald);}
+.rm-empty{font-size:0.55rem;color:var(--muted);text-align:center;padding:1.2rem;letter-spacing:0.1em;}
+.rm-sim-btn{width:100%;padding:.55rem;font-size:0.5rem;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.05);color:var(--muted);cursor:pointer;transition:all .3s;letter-spacing:0.06em;margin-bottom:.8rem;}
+.rm-sim-btn:hover{color:var(--foam);border-color:rgba(255,255,255,.12);}
+.rm-claim-btn{width:100%;padding:.8rem;font-family:'Orbitron',monospace;font-size:0.6rem;letter-spacing:0.16em;background:linear-gradient(135deg,var(--vgold),var(--legendary));color:var(--void);border:none;cursor:pointer;clip-path:polygon(10px 0%,100% 0%,calc(100% - 10px) 100%,0% 100%);font-weight:700;transition:all .3s;}
+.rm-claim-btn:hover:not(:disabled){box-shadow:0 0 25px rgba(255,193,7,.4);transform:translateY(-2px);}
+.rm-claim-btn:disabled{opacity:.35;cursor:not-allowed;transform:none;}
+/* Level Complete */
+#level-complete{position:fixed;inset:0;z-index:9000;background:rgba(3,6,15,0.97);display:none;align-items:center;justify-content:center;flex-direction:column;text-align:center;overflow:hidden;}
+#level-complete.show{display:flex;}
+#lc-canvas{position:absolute;inset:0;pointer-events:none;}
+.lc-content{position:relative;z-index:5;padding:2rem;max-width:640px;}
+.lc-ring{position:relative;width:180px;height:180px;margin:0 auto 2rem;}
+.lc-ring div{position:absolute;border-radius:50%;border:1px solid rgba(0,245,255,0.14);animation:spinOrb linear infinite;}
+.lc-ring div:nth-child(1){inset:0;animation-duration:6s;}
+.lc-ring div:nth-child(2){inset:-15px;animation-duration:10s;animation-direction:reverse;}
+.lc-ring div:nth-child(3){inset:-30px;animation-duration:16s;}
+@keyframes spinOrb{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
+.lc-icon-c{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:4.5rem;animation:lcF 2.5s ease infinite;}
+@keyframes lcF{0%,100%{transform:translateY(0);}50%{transform:translateY(-10px);}}
+.lc-eyebrow{font-family:'Orbitron',monospace;font-size:0.58rem;letter-spacing:0.5em;color:var(--vcyan);margin-bottom:1rem;}
+.lc-title{font-family:'Orbitron',monospace;font-size:clamp(2.5rem,6vw,5rem);font-weight:900;line-height:.9;margin-bottom:1rem;background:linear-gradient(135deg,#fff,var(--vgold),var(--vaqua));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.lc-sub{font-size:.65rem;color:var(--muted);margin-bottom:1.5rem;letter-spacing:.08em;line-height:1.6;}
+.lc-xp{font-family:'Orbitron',monospace;font-size:2.8rem;font-weight:900;color:var(--vgold);text-shadow:0 0 30px rgba(255,193,7,.6);animation:lcXP .6s cubic-bezier(.34,1.56,.64,1) .8s both;}
+@keyframes lcXP{from{opacity:0;transform:scale(.5);}to{opacity:1;transform:scale(1);}}
+.lc-note{font-size:.55rem;color:var(--vgold);opacity:.7;letter-spacing:.1em;margin:.5rem 0 1.5rem;}
+.lc-unlock{font-size:.6rem;color:var(--vaqua);margin-bottom:2rem;letter-spacing:.05em;animation:fadeIn .5s ease 1.8s both;}
+@keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+.lc-btns{display:flex;gap:1rem;justify-content:center;animation:fadeIn .5s ease 2.2s both;}
+.lc-btn{font-family:'Orbitron',monospace;font-size:.6rem;letter-spacing:.18em;padding:.8rem 2rem;border:none;cursor:pointer;clip-path:polygon(10px 0%,100% 0%,calc(100% - 10px) 100%,0% 100%);transition:all .3s;text-decoration:none;display:inline-block;}
+.lc-btn-p{background:linear-gradient(135deg,var(--vaqua),var(--vcyan));color:var(--void);font-weight:700;}
+.lc-btn-e{background:linear-gradient(135deg,var(--vgold),var(--legendary));color:var(--void);font-weight:700;}
+/* XP float & toast */
+.xp-float{position:fixed;font-family:'Orbitron',monospace;font-weight:700;font-size:.95rem;color:var(--vgold);pointer-events:none;z-index:9992;text-shadow:0 0 10px rgba(255,193,7,.8);animation:floatUp 1.5s ease forwards;}
+@keyframes floatUp{from{opacity:1;transform:translateY(0) scale(1);}to{opacity:0;transform:translateY(-75px) scale(.8);}}
+.toast{position:fixed;bottom:2.2rem;right:2.2rem;z-index:9991;background:linear-gradient(135deg,#060f20,#0a1628);border:1px solid rgba(0,245,255,.22);padding:.9rem 1.4rem;max-width:300px;transform:translateX(120%);transition:transform .4s cubic-bezier(.34,1.56,.64,1);box-shadow:0 0 25px rgba(0,245,255,.12);}
+.toast.show{transform:translateX(0);}
+.toast-t{font-family:'Orbitron',monospace;font-size:.5rem;letter-spacing:.2em;color:var(--vcyan);margin-bottom:.25rem;}
+.toast-b{font-size:.57rem;color:var(--foam);opacity:.8;}
+@media(max-width:900px){nav{padding:1rem 1.2rem;}.hud-bar{padding:0 1.2rem;}.level-strip{padding:0 1.2rem 2rem;}.level-panel{margin:0 1.2rem 2rem;}.level-panel-header{padding:1.4rem;}.tasks-list{padding:0 1rem 1.5rem;}.task-card{grid-template-columns:1fr;gap:.8rem;}.task-actions{align-items:flex-start;}}
+</style>
+</head>
+<body>
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursor-ring"></div>
+<div class="toast" id="toast"><div class="toast-t" id="toast-t"></div><div class="toast-b" id="toast-b"></div></div>
+
+<!-- LEVEL COMPLETE -->
+<div id="level-complete">
+  <canvas id="lc-canvas"></canvas>
+  <div class="lc-content">
+    <div class="lc-ring"><div></div><div></div><div></div><div class="lc-icon-c" id="lc-icon">🌊</div></div>
+    <p class="lc-eyebrow" id="lc-eyebrow">⬡ LEVEL COMPLETE ⬡</p>
+    <h2 class="lc-title" id="lc-title">LEVEL 1 CLEARED</h2>
+    <p class="lc-sub" id="lc-sub">The Awakening is complete.</p>
+    <div class="lc-xp" id="lc-xp">+500 XP</div>
+    <p class="lc-note">💰 Redeem your XP for ₹ cash on the Earn page</p>
+    <p class="lc-unlock" id="lc-unlock">🔓 Level 2 unlocked!</p>
+    <div class="lc-btns">
+      <button class="lc-btn lc-btn-p" onclick="closeLevelComplete()">Continue →</button>
+      <a href="earn.html" class="lc-btn lc-btn-e">💰 Cash Out XP</a>
+    </div>
+  </div>
+</div>
+
+<!-- VERIFY MODAL -->
+<div class="modal-overlay" id="verify-modal">
+  <div class="vm-box">
+    <div class="vm-header">
+      <span class="vm-title" id="vm-title">⬡ VERIFY TASK</span>
+      <button class="m-close" onclick="closeVM()">×</button>
+    </div>
+    <div class="vm-body">
+      <div id="vm-task-h"></div>
+      <div id="vm-hint-p"></div>
+      <!-- UPLOAD -->
+      <div id="s-upload">
+        <div class="upload-zone" id="upload-zone" onclick="document.getElementById('fi').click()" ondragover="event.preventDefault();this.classList.add('drag-over')" ondragleave="this.classList.remove('drag-over')" ondrop="handleDrop(event)">
+          <span class="upload-icon">📸</span>
+          <div class="upload-title">DROP YOUR PROOF PHOTO HERE</div>
+          <div class="upload-sub">Upload a clear photo proving this task is complete.<br>JPEG · PNG · HEIC — max 20MB</div>
+          <div class="upload-hint" id="vm-upload-hint"></div>
+          <div class="upload-or">— or —</div>
+          <button class="browse-btn" onclick="event.stopPropagation();document.getElementById('fi').click()">Browse Files</button>
+        </div>
+        <input type="file" id="fi" accept="image/*" onchange="handleFS(event)" style="display:none">
+      </div>
+      <!-- PREVIEW -->
+      <div id="s-preview" style="display:none">
+        <div class="preview-zone" id="preview-zone">
+          <img id="preview-img" src="" alt="" class="preview-img">
+          <div class="img-scan-overlay">
+            <div class="scan-line" id="scan-line"></div>
+            <div class="grid-overlay" id="grid-overlay"></div>
+            <div class="img-corner ic-tl"></div><div class="img-corner ic-tr"></div>
+            <div class="img-corner ic-bl"></div><div class="img-corner ic-br"></div>
+          </div>
+        </div>
+        <div class="preview-actions">
+          <button class="re-upload-btn" onclick="resetUpload()">✕ Re-upload</button>
+          <button class="analyze-btn" onclick="startAnalysis()">⬡ VERIFY WITH AI</button>
+        </div>
+      </div>
+      <!-- ANALYZING -->
+      <div class="analyzing-state" id="s-analyzing">
+        <div class="a-spinner"></div>
+        <div class="a-text" id="a-text">ANALYZING...</div>
+        <div class="a-steps" id="a-steps"></div>
+      </div>
+      <!-- VERIFIED -->
+      <div class="verified-state" id="s-verified">
+        <div class="v-check">✓</div>
+        <div class="v-title">TASK VERIFIED</div>
+        <div class="v-sub">AI analysis confirms your water-saving action.</div>
+        <div class="v-xp" id="v-xp-d">+80 XP</div>
+        <div id="v-detects"></div>
+        <button class="v-claim-btn" onclick="confirmVerified()">⚡ CLAIM REWARD</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- REFERRAL MODAL -->
+<div class="modal-overlay" id="ref-modal">
+  <div class="rm-box">
+    <div class="rm-header">
+      <span class="rm-title">🔗 REFERRAL MISSION</span>
+      <button class="m-close" onclick="closeRM()">×</button>
+    </div>
+    <div class="rm-body">
+      <div class="rm-hero">
+        <span class="rm-icon">🔗</span>
+        <div class="rm-req" id="rm-req">Invite 3 Friends</div>
+        <div class="rm-req-l" id="rm-req-l">SHARE YOUR UNIQUE LINK — ALL MUST JOIN</div>
+      </div>
+      <div class="rm-prog-wrap">
+        <div class="rm-prog-lbl"><span>FRIENDS JOINED</span><span id="rm-prog-t">0 / 3</span></div>
+        <div class="rm-track"><div class="rm-fill" id="rm-fill" style="width:0%"></div></div>
+      </div>
+      <div class="rm-link-box">
+        <span class="rm-link-text" id="rm-link">https://aquavita.app/?ref=LOADING</span>
+        <button class="rm-copy-btn" id="rm-copy" onclick="copyRef()">COPY</button>
+      </div>
+      <div class="rm-share-row">
+        <button class="rm-share-btn rm-wa" onclick="shareWA()">📱 WhatsApp</button>
+        <button class="rm-share-btn rm-tw" onclick="shareTW()">🐦 Twitter/X</button>
+      </div>
+      <div class="rm-friends">
+        <div class="rm-friends-title">FRIENDS WHO JOINED</div>
+        <div id="rm-friends-list"></div>
+      </div>
+      <button class="rm-sim-btn" onclick="simJoin()">＋ Simulate a friend joining (demo)</button>
+      <button class="rm-claim-btn" id="rm-claim" onclick="claimRef()" disabled>⚡ CLAIM REFERRAL REWARD</button>
+    </div>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav>
+  <a href="index.html" class="nav-logo">⬡ AQUAVITA</a>
+  <ul class="nav-links">
+    <li><a href="about.html">About</a></li>
+    <li><a href="levels.html" class="active">Levels</a></li>
+    <li><a href="earn.html">Earn</a></li>
+    <li><a href="community.html">Community</a></li>
+    <li><a href="profile.html">My Profile</a></li>
+  </ul>
+  <div class="nav-right">
+    <div class="nav-xp-pill" id="nav-xp-pill"><div class="xp-dot"></div><span id="nav-xp-count">0</span>&nbsp;XP</div>
+    <button class="nav-btn" id="nav-btn" onclick="navClick()">Sign In</button>
+  </div>
+</nav>
+<div class="hud-bar">
+  <div class="hud-stat">⬡ AQUAVITA HERO PROTOCOL</div>
+  <div class="hud-right">
+    <div class="hud-stat">SEASON <span>01</span></div>
+    <div class="hud-stat">GLOBAL HEROES <span>2,847,201</span></div>
+    <div class="hud-stat">YOUR XP <span id="hud-xp">0</span></div>
+  </div>
+</div>
+
+<div class="page">
+  <div class="level-strip" id="level-strip"></div>
+  <div class="level-panel" id="level-panel">
+    <div class="level-panel-header" id="panel-header">
+      <span class="level-panel-icon" id="panel-icon">💧</span>
+      <div>
+        <div class="level-panel-eyebrow" id="panel-eyebrow">LEVEL 1</div>
+        <div class="level-panel-title" id="panel-title">The Awakening</div>
+        <div class="level-panel-desc" id="panel-desc"></div>
+      </div>
+      <div class="level-panel-xp">
+        <div class="lp-xp-num" id="panel-xp-num">+500</div>
+        <div class="lp-xp-label">LEVEL BONUS XP</div>
+      </div>
+    </div>
+    <div class="level-progress-bar"><div class="level-progress-fill" id="prog-fill" style="width:0%"></div></div>
+    <div class="level-progress-label"><span id="prog-label">0 / 5 tasks verified</span><span id="prog-pct">0%</span></div>
+    <div class="tasks-list" id="tasks-list"></div>
+  </div>
+</div>
+
+<script>
+const LEVELS=[
+{id:1,name:"The Awakening",subtitle:"Begin Your Journey",color:"#00f5ff",icon:"💧",xpBonus:500,locked:false,
+desc:"Your first steps into water consciousness. Complete all 5 missions and unlock Level 2.",
+tasks:[
+{id:"1_1",name:"5-Minute Shower Sprint",rarity:"COMMON",rc:"#aaa",desc:"Take a shower under 5 minutes every day for a week. Use a timer app or phone stopwatch. Every minute saved = 10 litres returned to earth.",xp:80,water:"3,650L/yr",type:"photo",hint:"Upload a screenshot of your timer showing ≤5 minutes, or a photo of your bathroom with a visible timer.",detects:["Short shower duration detected","Water conservation behaviour confirmed","Bathroom environment verified"]},
+{id:"1_2",name:"Tap-Off While Brushing",rarity:"COMMON",rc:"#aaa",desc:"Turn off the tap completely while brushing teeth for 7 days. A running tap wastes 6 litres per minute — 4,380L per year.",xp:60,water:"1,460L/yr",type:"photo",hint:"Upload a photo of your sink with a reminder note, or show the tap in the off position.",detects:["Closed tap position confirmed","Water-saving reminder visible","Habit modification verified"]},
+{id:"1_3",name:"Drip Detective",rarity:"RARE",rc:"#00b4ff",desc:"Inspect every tap, pipe, toilet flapper, and outdoor connection in your home. Fix or report any drips you find within 48 hours.",xp:100,water:"15,000L/yr",type:"photo",hint:"Upload a photo of the inspected or repaired tap, pipe, or toilet. Show the fix clearly.",detects:["Plumbing inspection evidence detected","Leak repair activity confirmed","Water loss prevention verified"]},
+{id:"1_4",name:"Dawn Watering Ritual",rarity:"COMMON",rc:"#aaa",desc:"Water your plants only at sunrise (before 8AM) or after sunset (after 7PM) for one full week. Cuts evaporation by up to 50%.",xp:70,water:"4,800L/yr",type:"photo",hint:"Upload a photo of you watering plants in early morning or evening light. Timestamp visible preferred.",detects:["Low-evaporation watering time confirmed","Garden water conservation verified","Responsible irrigation detected"]},
+{id:"1_5",name:"Recruit a Warrior",rarity:"EPIC",rc:"#b060ff",desc:"Invite 1 friend to join AquaVita using your unique referral link. They must sign up and view the Levels page.",xp:150,water:"∞ ripple",type:"referral",reqRef:1,hint:"Share your referral link. Your friend must click it and sign up.",detects:[]}
+]},
+{id:2,name:"The Guardian",subtitle:"Deepen Your Commitment",color:"#00e5cc",icon:"🌿",xpBonus:750,locked:true,
+desc:"Guardian missions require real home modifications. Go beyond habits — make physical changes that save water permanently.",
+tasks:[
+{id:"2_1",name:"Low-Flow Installation",rarity:"RARE",rc:"#00b4ff",desc:"Install a low-flow showerhead (≤8L/min) or tap aerator in your kitchen or bathroom. Cut water use by up to 60% permanently.",xp:120,water:"18,000L/yr",type:"photo",hint:"Upload a photo of your newly installed low-flow showerhead or aerator. Show the product label if possible.",detects:["Low-flow device installation confirmed","Water-saving hardware detected","Permanent conservation upgrade verified"]},
+{id:"2_2",name:"Grey Water Rescue",rarity:"RARE",rc:"#00b4ff",desc:"Collect water from washing vegetables, dishes, or hands in a bucket. Reuse it to water plants for 14 days straight. Every drop counts.",xp:90,water:"6,200L/yr",type:"photo",hint:"Upload a photo showing your reuse bucket alongside the plants you watered with it.",detects:["Greywater reuse setup detected","Water recycling behaviour confirmed","Secondary water use verified"]},
+{id:"2_3",name:"Full Load Only",rarity:"COMMON",rc:"#aaa",desc:"Run your washing machine and dishwasher ONLY when completely full for 30 consecutive days. Modern full loads use 50% less per item.",xp:100,water:"9,400L/yr",type:"photo",hint:"Upload a photo of your fully loaded washing machine drum before starting a cycle.",detects:["Full-load appliance usage confirmed","Efficient water use detected","Waste-prevention behaviour verified"]},
+{id:"2_4",name:"Neighbourhood Scout",rarity:"EPIC",rc:"#b060ff",desc:"Find and photograph 3 water wastage points in your neighbourhood — broken pipes, open taps, clogged drains. Report them to local authorities.",xp:150,water:"Community",type:"photo",hint:"Upload 1-3 photos of water wastage points you found and reported in your neighbourhood.",detects:["Community water issue documented","Local leak reporting evidence detected","Civic conservation action verified"]},
+{id:"2_5",name:"Bring the Troops",rarity:"LEGENDARY",rc:"#ff9f43",desc:"Recruit 3 friends to AquaVita using your referral link. All 3 must sign up to unlock this reward.",xp:250,water:"∞ ripple",type:"referral",reqRef:3,hint:"Share your referral link. All 3 friends must join.",detects:[]}
+]},
+{id:3,name:"The Protector",subtitle:"Community Impact",color:"#b060ff",icon:"🔱",xpBonus:1000,locked:true,
+desc:"Protector missions extend your impact beyond the home into your community. Leaders make the real difference.",
+tasks:[
+{id:"3_1",name:"Rain Catcher Setup",rarity:"EPIC",rc:"#b060ff",desc:"Install a rainwater harvesting barrel or pot connected to your roof drainage pipe. Even a 200L barrel makes a massive seasonal difference.",xp:200,water:"15,600L/yr",type:"photo",hint:"Upload a photo of your installed rain barrel connected to the downpipe.",detects:["Rainwater harvesting system detected","Roof drainage diversion confirmed","Water capture installation verified"]},
+{id:"3_2",name:"Mulch Master",rarity:"RARE",rc:"#00b4ff",desc:"Apply at least 5cm of mulch around all plants in your garden. Mulch retains soil moisture and cuts watering needs by up to 50%.",xp:120,water:"8,000L/yr",type:"photo",hint:"Upload before/after photos of your garden with mulch clearly visible around plants.",detects:["Mulch layer application confirmed","Soil moisture retention method verified","Garden water conservation detected"]},
+{id:"3_3",name:"Home Water Audit",rarity:"EPIC",rc:"#b060ff",desc:"Conduct a full water audit. Read your metre monthly, identify top 3 waste sources, write a 30-day action plan. Measurement drives change.",xp:180,water:"Analytics",type:"photo",hint:"Upload your written water audit report, spreadsheet, or water metre reading notes.",detects:["Water audit documentation confirmed","Usage measurement data detected","Systematic conservation planning verified"]},
+{id:"3_4",name:"Drought Warriors Garden",rarity:"RARE",rc:"#00b4ff",desc:"Replace at least 3 water-hungry plants with native Kerala/Indian species or drought-resistant varieties like aloe, jade, or succulents.",xp:150,water:"12,000L/yr",type:"photo",hint:"Upload photos of the drought-resistant plants you planted, with old plants visible for comparison.",detects:["Drought-resistant species confirmed","Water-efficient garden modification verified","Native plant adoption detected"]},
+{id:"3_5",name:"Squad Goals",rarity:"LEGENDARY",rc:"#ff9f43",desc:"Recruit 5 friends to AquaVita. At least 3 must complete Level 1 for this reward to unlock.",xp:400,water:"∞ ripple",type:"referral",reqRef:5,hint:"Share your referral link. 5 friends must join.",detects:[]}
+]},
+{id:4,name:"The Champion",subtitle:"Transform Your World",color:"#ffc107",icon:"⭐",xpBonus:1500,locked:true,
+desc:"Champion missions reshape your world. Serious commitment, visible action, community leadership. This is how change happens.",
+tasks:[
+{id:"4_1",name:"Greywater System",rarity:"LEGENDARY",rc:"#ff9f43",desc:"Install a greywater recycling system routing bathroom sink or shower water to your garden. Even a simple DIY PVC diverter qualifies.",xp:300,water:"30,000L/yr",type:"photo",hint:"Upload a photo showing your greywater diversion pipes, containers, and where the water flows.",detects:["Greywater recycling infrastructure detected","Water reuse system confirmed","Advanced conservation engineering verified"]},
+{id:"4_2",name:"Workshop Host",rarity:"LEGENDARY",rc:"#ff9f43",desc:"Host a water conservation workshop for minimum 10 people — in your colony, apartment, school or office. Show them AquaVita.",xp:350,water:"Cascade",type:"photo",hint:"Upload a group photo of your workshop with at least 10 participants and materials visible.",detects:["Community gathering evidence confirmed","Educational workshop detected","10+ participants verified"]},
+{id:"4_3",name:"50-Share Post",rarity:"EPIC",rc:"#b060ff",desc:"Write a compelling post or article about the water crisis that gets shared at least 50 times. Quality and reach matter here.",xp:250,water:"Awareness",type:"photo",hint:"Upload a screenshot of your post clearly showing the share/repost count at 50 or above.",detects:["Social media post confirmed","Share count metric verified","Public awareness campaign detected"]},
+{id:"4_4",name:"School or Office Champion",rarity:"LEGENDARY",rc:"#ff9f43",desc:"Convince your local school, college, or workplace to implement at least one permanent water-saving measure (restrictors, timed taps, signage).",xp:400,water:"Institutional",type:"photo",hint:"Upload a photo with the authority confirming the initiative, or show the installed measure.",detects:["Institutional change evidence detected","Authority sign-off confirmed","Systemic impact initiative verified"]},
+{id:"4_5",name:"Build Your Army",rarity:"LEGENDARY",rc:"#ff9f43",desc:"Recruit 10 people to AquaVita. At least 5 must reach Level 2. This is real leadership in action.",xp:700,water:"∞ ripple",type:"referral",reqRef:10,hint:"Share your referral link. 10 people must sign up.",detects:[]}
+]},
+{id:5,name:"The Legend",subtitle:"Leave a Legacy",color:"#ff9f43",icon:"👑",xpBonus:3000,locked:true,
+desc:"The final frontier. Legend missions create permanent systemic change that outlives you. This is your legacy.",
+tasks:[
+{id:"5_1",name:"Policy Petition",rarity:"LEGENDARY",rc:"#ff9f43",desc:"Launch a petition demanding water-saving policies from your local municipality or panchayat. Collect minimum 100 signatures.",xp:500,water:"Policy level",type:"photo",hint:"Upload a photo of your signed petition with 100+ signatures, or screenshot of an online petition.",detects:["Civic petition documentation confirmed","100+ signatures verified","Policy advocacy detected"]},
+{id:"5_2",name:"Solar Water Heater",rarity:"LEGENDARY",rc:"#ff9f43",desc:"Install or help install a solar water heating system in your home or a public facility. Eliminates reliance on electric geysers completely.",xp:600,water:"Massive indirect",type:"photo",hint:"Upload a photo of the installed solar water heater on the rooftop or facility.",detects:["Solar water heating system detected","Renewable infrastructure confirmed","Long-term conservation investment verified"]},
+{id:"5_3",name:"Permaculture Design",rarity:"LEGENDARY",rc:"#ff9f43",desc:"Design and implement a full permaculture water management system — swales, berms, food forests — for a garden or community space.",xp:500,water:"Self-sustaining",type:"photo",hint:"Upload your permaculture water design sketch and photos of the implementation on the ground.",detects:["Permaculture design elements confirmed","Landscape water management verified","Regenerative system implementation detected"]},
+{id:"5_4",name:"Media Feature",rarity:"LEGENDARY",rc:"#ff9f43",desc:"Get your water conservation work featured in a newspaper, news website, YouTube, or TV segment. Inspire millions.",xp:600,water:"Media scale",type:"photo",hint:"Upload a screenshot or photo of your media feature — article, broadcast still, or YouTube thumbnail.",detects:["Media coverage evidence confirmed","Public platform feature verified","Large-scale awareness impact detected"]},
+{id:"5_5",name:"The AquaVita Legion",rarity:"LEGENDARY",rc:"#ff9f43",desc:"Build a community of 20 AquaVita warriors, all of whom have completed at least Level 2. You are the catalyst for exponential impact.",xp:1000,water:"∞ exponential",type:"referral",reqRef:20,hint:"Share your referral link. 20 people must join and reach Level 2.",detects:[]}
+]}
+];
+
+let curLvl=1,activeVTask=null,activeRTask=null,uploadedFile=null;
+
+function loadUser(){try{return JSON.parse(localStorage.getItem('aq_user'))||null;}catch{return null;}}
+function loadProg(){try{return JSON.parse(localStorage.getItem('aq_progress'))||{xp:0,level:1,completedQuests:[],badges:[],history:[],totalWater:0};}catch{return{xp:0,level:1,completedQuests:[],badges:[],history:[],totalWater:0};}}
+function saveProg(p){localStorage.setItem('aq_progress',JSON.stringify(p));}
+function loadLvls(){try{return JSON.parse(localStorage.getItem('aq_levels'))||{};}catch{return{};}}
+function saveLvls(l){localStorage.setItem('aq_levels',JSON.stringify(l));}
+function loadRef(){try{return JSON.parse(localStorage.getItem('aq_referral'))||null;}catch{return null;}}
+function saveRef(r){localStorage.setItem('aq_referral',JSON.stringify(r));}
+
+function getOrCreateRef(){
+  let ref=loadRef();
+  if(!ref){
+    const user=loadUser();
+    const name=user?user.name.replace(/\s/g,'').toUpperCase().slice(0,6):'HERO';
+    const code=name+'_'+Math.random().toString(36).substr(2,4).toUpperCase();
+    ref={code,joined:[],count:0};saveRef(ref);
+  }
+  return ref;
+}
+
+function navClick(){const u=loadUser();window.location.href=u&&u.isLoggedIn?'profile.html':'index.html';}
+function updateNav(){
+  const u=loadUser(),p=loadProg();
+  const pill=document.getElementById('nav-xp-pill'),btn=document.getElementById('nav-btn');
+  if(u&&u.isLoggedIn){
+    document.getElementById('nav-xp-count').textContent=(p.xp||0).toLocaleString();
+    document.getElementById('hud-xp').textContent=(p.xp||0).toLocaleString();
+    pill.classList.add('visible');btn.textContent=u.name.split(' ')[0];btn.classList.add('signed-in');
+  }
+}
+
+// CURSOR
+const cur=document.getElementById('cursor'),curR=document.getElementById('cursor-ring');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cur.style.left=mx+'px';cur.style.top=my+'px';});
+(function aR(){rx+=(mx-rx)*0.12;ry+=(my-ry)*0.12;curR.style.left=rx+'px';curR.style.top=ry+'px';requestAnimationFrame(aR);})();
+document.addEventListener('click',e=>{const r=document.createElement('div');r.className='ripple';r.style.left=e.clientX+'px';r.style.top=e.clientY+'px';document.body.appendChild(r);setTimeout(()=>r.remove(),900);});
+
+function toast(title,body,dur=3500){const t=document.getElementById('toast');document.getElementById('toast-t').textContent=title;document.getElementById('toast-b').textContent=body;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),dur);}
+function xpFloat(amt,x,y){const el=document.createElement('div');el.className='xp-float';el.textContent='+'+amt+' XP';el.style.left=x+'px';el.style.top=y+'px';document.body.appendChild(el);setTimeout(()=>el.remove(),1500);}
+
+function findTask(id){for(const l of LEVELS)for(const t of l.tasks)if(t.id===id)return t;return null;}
+
+function isLevelUnlocked(lvlId){
+  if(lvlId===1)return true;
+  const lv=loadLvls();
+  const prev=LEVELS.find(l=>l.id===lvlId-1);
+  return prev&&lv[prev.id]&&prev.tasks.every(t=>lv[prev.id][t.id]);
+}
+
+function buildStrip(){
+  const lv=loadLvls(),strip=document.getElementById('level-strip');
+  strip.innerHTML='';
+  LEVELS.forEach((lvl,i)=>{
+    const unlocked=isLevelUnlocked(lvl.id);
+    const done=lv[lvl.id]&&lvl.tasks.every(t=>lv[lvl.id][t.id]);
+    const isAct=lvl.id===curLvl;
+    const tab=document.createElement('div');
+    tab.className=`level-tab ${done?'completed':unlocked?'available':'locked'} ${isAct?'active':''}`;
+    const cc=done?`color:${lvl.color};border-color:${lvl.color};background:${lvl.color}18;`
+      :unlocked?`color:${lvl.color};border-color:${lvl.color}66;`:''
+    const boxSh=isAct&&unlocked?`box-shadow:0 0 22px ${lvl.color}55;`:'';
+    tab.innerHTML=`
+      <div class="level-tab-circle" style="${cc}${boxSh}">${done?'✓':unlocked?lvl.icon:'🔒'}</div>
+      <div class="level-tab-label" style="${unlocked||done?`color:${lvl.color};`:''}">${done?'✓ ':''} LVL ${lvl.id}</div>
+      <div class="level-tab-name">${lvl.name}</div>
+      ${i<LEVELS.length-1?`<div class="level-tab-line" style="${done?`background:${lvl.color}55;`:''}"></div>`:''}
+    `;
+    if(unlocked||done)tab.onclick=()=>openLevel(lvl.id);
+    else tab.title='Complete Level '+(lvl.id-1)+' to unlock';
+    strip.appendChild(tab);
+  });
+}
+
+function openLevel(id){
+  curLvl=id;buildStrip();
+  const lvl=LEVELS.find(l=>l.id===id);
+  const lv=loadLvls();const ld=lv[id]||{};
+  const panel=document.getElementById('level-panel');
+  panel.style.display='block';panel.classList.add('visible');
+  panel.style.borderColor=lvl.color+'20';
+  setTimeout(()=>panel.scrollIntoView({behavior:'smooth',block:'start'}),80);
+  document.getElementById('panel-header').style.background=`linear-gradient(135deg,${lvl.color}0a,transparent)`;
+  document.getElementById('panel-header').style.borderBottom=`1px solid ${lvl.color}20`;
+  document.getElementById('panel-icon').textContent=lvl.icon;
+  document.getElementById('panel-eyebrow').textContent=`LEVEL ${lvl.id} — ${lvl.subtitle.toUpperCase()}`;
+  document.getElementById('panel-eyebrow').style.color=lvl.color;
+  document.getElementById('panel-title').textContent=lvl.name;
+  document.getElementById('panel-title').style.color=lvl.color;
+  document.getElementById('panel-desc').textContent=lvl.desc;
+  document.getElementById('panel-xp-num').textContent='+'+lvl.xpBonus.toLocaleString();
+  document.getElementById('prog-fill').style.background=`linear-gradient(90deg,${lvl.color},${lvl.color}88)`;
+  refreshProg(lvl,ld);buildTasks(lvl,ld);
+}
+
+function refreshProg(lvl,ld){
+  const done=lvl.tasks.filter(t=>ld[t.id]).length;
+  const pct=(done/lvl.tasks.length)*100;
+  document.getElementById('prog-fill').style.width=pct+'%';
+  document.getElementById('prog-label').textContent=`${done} / ${lvl.tasks.length} tasks verified`;
+  document.getElementById('prog-pct').textContent=Math.round(pct)+'%';
+}
+
+function buildTasks(lvl,ld){
+  const list=document.getElementById('tasks-list');list.innerHTML='';
+  lvl.tasks.forEach((task,i)=>{
+    const verified=!!ld[task.id];
+    const card=document.createElement('div');
+    card.className=`task-card ${verified?'verified':''}`;
+    card.id='tc-'+task.id;
+    card.innerHTML=`
+      <div class="task-num">${verified?'✓':'0'+(i+1)}</div>
+      <div>
+        <div class="task-rarity"><div class="rarity-pip" style="background:${task.rc}"></div><span style="color:${task.rc}">${task.rarity}</span></div>
+        <div class="task-name">${task.name}</div>
+        <div class="task-desc">${task.desc}</div>
+        <div class="task-meta">
+          <span class="tc tc-xp">⚡ +${task.xp} XP</span>
+          <span class="tc tc-water">💧 ${task.water}</span>
+          <span class="tc ${task.type==='referral'?'tc-ref':'tc-type'}">${task.type==='referral'?'🔗 Referral':'📸 Photo Verify'}</span>
+          ${verified?'<span class="tc tc-done">✓ VERIFIED</span>':''}
+        </div>
+      </div>
+      <div class="task-actions">
+        <div class="v-badge"><div class="v-badge-icon">✓</div>&nbsp;VERIFIED</div>
+        ${verified?'': `<button class="verify-btn" style="background:linear-gradient(135deg,${lvl.color},${lvl.color}88);"
+          onclick="${task.type==='referral'?`openRM('${task.id}')`:`openVM('${task.id}')`}">
+          ${task.type==='referral'?'🔗 REFERRAL LINK':'📸 VERIFY TASK'}</button>`}
+      </div>
+    `;
+    list.appendChild(card);
+  });
+}
+
+// ---- VERIFY MODAL ----
+function openVM(taskId){
+  activeVTask=taskId;uploadedFile=null;
+  const task=findTask(taskId);
+  document.getElementById('vm-title').textContent='⬡ VERIFY — '+task.name.toUpperCase();
+  document.getElementById('vm-task-h').textContent=task.name;
+  document.getElementById('vm-hint-p').textContent='📋 '+task.hint;
+  document.getElementById('vm-upload-hint').textContent=task.hint;
+  showVS('upload');
+  document.getElementById('verify-modal').classList.add('open');
+}
+function closeVM(){document.getElementById('verify-modal').classList.remove('open');activeVTask=null;uploadedFile=null;}
+document.getElementById('verify-modal').addEventListener('click',function(e){if(e.target===this)closeVM();});
+
+function showVS(s){
+  document.getElementById('s-upload').style.display=s==='upload'?'block':'none';
+  document.getElementById('s-preview').style.display=s==='preview'?'block':'none';
+  document.getElementById('s-analyzing').style.display=s==='analyzing'?'flex':'none';
+  document.getElementById('s-verified').style.display=s==='verified'?'block':'none';
+}
+document.getElementById('s-analyzing').style.flexDirection='column';
+document.getElementById('s-analyzing').style.alignItems='center';
+
+function handleFS(e){const f=e.target.files[0];if(f)processFile(f);}
+function handleDrop(e){e.preventDefault();document.getElementById('upload-zone').classList.remove('drag-over');const f=e.dataTransfer.files[0];if(f&&f.type.startsWith('image/'))processFile(f);}
+function processFile(file){
+  uploadedFile=file;
+  const r=new FileReader();
+  r.onload=ev=>{document.getElementById('preview-img').src=ev.target.result;showVS('preview');};
+  r.readAsDataURL(file);
+}
+function resetUpload(){uploadedFile=null;document.getElementById('fi').value='';showVS('upload');}
+
+function startAnalysis(){
+  if(!uploadedFile)return;
+  const task=findTask(activeVTask);
+  showVS('analyzing');
+  document.getElementById('scan-line').style.display='block';
+  document.getElementById('grid-overlay').style.display='block';
+  let scanPos=0;
+  const sl=document.getElementById('scan-line');
+  let si_=setInterval(()=>{scanPos+=1.5;if(scanPos>100)scanPos=0;sl.style.top=scanPos+'%';},18);
+
+  const steps=['Scanning image for water-saving evidence...','Detecting environment and context...','Cross-referencing conservation behaviour...','Verifying authenticity and metadata...','Generating verification certificate...'];
+  const stepsEl=document.getElementById('a-steps');
+  const textEl=document.getElementById('a-text');
+  stepsEl.innerHTML=steps.map(s=>`<div class="a-step"><div class="a-dot"></div>${s}</div>`).join('');
+  const sEls=stepsEl.querySelectorAll('.a-step');
+  let si=0;
+  function ns(){
+    if(si>0){sEls[si-1].classList.remove('active');sEls[si-1].classList.add('done');sEls[si-1].querySelector('.a-dot').style.background='var(--emerald)';}
+    if(si<sEls.length){sEls[si].classList.add('active');sEls[si].querySelector('.a-dot').style.background='var(--vcyan)';textEl.textContent=steps[si].toUpperCase();si++;setTimeout(ns,900);}
+    else{clearInterval(si_);setTimeout(()=>{
+      const detects=task.detects&&task.detects.length?task.detects:['Water conservation behaviour confirmed','Valid photo evidence detected','Task completion verified'];
+      document.getElementById('v-xp-d').textContent='+'+task.xp+' XP';
+      document.getElementById('v-detects').innerHTML=detects.map(d=>`<div class="v-detect">✓&nbsp; ${d}</div>`).join('');
+      showVS('verified');
+    },500);}
+  }
+  setTimeout(ns,300);
+}
+
+function confirmVerified(){
+  const task=findTask(activeVTask);if(!task)return;
+  const lvlId=parseInt(activeVTask.split('_')[0]);
+  const lv=loadLvls();if(!lv[lvlId])lv[lvlId]={};
+  lv[lvlId][task.id]=true;saveLvls(lv);
+  const p=loadProg();p.xp=(p.xp||0)+task.xp;
+  if(!p.completedQuests)p.completedQuests=[];
+  if(!p.completedQuests.includes(task.name))p.completedQuests.push(task.name);
+  saveProg(p);
+  document.getElementById('nav-xp-count').textContent=p.xp.toLocaleString();
+  document.getElementById('hud-xp').textContent=p.xp.toLocaleString();
+  xpFloat(task.xp,window.innerWidth/2-30,window.innerHeight/2);
+  closeVM();
+  const lvl=LEVELS.find(l=>l.id===lvlId);
+  const ld=lv[lvlId]||{};
+  buildTasks(lvl,ld);refreshProg(lvl,ld);
+  toast('⚡ Task Verified!',task.name+' — +'+task.xp+' XP earned');
+  const done=lvl.tasks.filter(t=>ld[t.id]).length;
+  if(done===lvl.tasks.length)setTimeout(()=>showLevelComplete(lvl,lv),800);
+  buildStrip();
+}
+
+// ---- REFERRAL MODAL ----
+function openRM(taskId){
+  activeRTask=taskId;
+  const task=findTask(taskId);
+  const ref=getOrCreateRef();
+  const link=`https://aquavita.app/?ref=${ref.code}`;
+  document.getElementById('rm-req').textContent=`Invite ${task.reqRef} Friend${task.reqRef>1?'s':''}`;
+  document.getElementById('rm-req-l').textContent=`SHARE YOUR UNIQUE LINK — ${task.reqRef} MUST JOIN`;
+  document.getElementById('rm-link').textContent=link;
+  updateRMProg(task,ref);renderFriends(ref);
+  document.getElementById('ref-modal').classList.add('open');
+}
+function closeRM(){document.getElementById('ref-modal').classList.remove('open');}
+document.getElementById('ref-modal').addEventListener('click',function(e){if(e.target===this)closeRM();});
+
+function updateRMProg(task,ref){
+  const c=ref.joined.length,req=task.reqRef;
+  document.getElementById('rm-prog-t').textContent=`${c} / ${req}`;
+  document.getElementById('rm-fill').style.width=Math.min(c/req*100,100)+'%';
+  document.getElementById('rm-claim').disabled=c<req;
+}
+function renderFriends(ref){
+  const el=document.getElementById('rm-friends-list');
+  if(!ref.joined||!ref.joined.length){el.innerHTML='<div class="rm-empty">NO FRIENDS JOINED YET — SHARE YOUR LINK!</div>';return;}
+  el.innerHTML=ref.joined.map(f=>`<div class="rm-friend-row"><div class="rm-f-av">${f.name[0].toUpperCase()}</div>${f.name}<span style="font-size:.48rem;color:var(--muted);margin-left:.4rem;">${new Date(f.date).toLocaleDateString('en-IN')}</span><span class="rm-f-check">✓</span></div>`).join('');
+}
+function copyRef(){
+  const ref=getOrCreateRef();
+  const link=`https://aquavita.app/?ref=${ref.code}`;
+  navigator.clipboard.writeText(link).then(()=>{
+    const btn=document.getElementById('rm-copy');btn.textContent='COPIED ✓';btn.classList.add('copied');
+    setTimeout(()=>{btn.textContent='COPY';btn.classList.remove('copied');},2000);
+    toast('🔗 Link Copied!','Share it with friends to earn XP.');
+  }).catch(()=>toast('🔗 Your Referral Link',`aquavita.app/?ref=${ref.code}`));
+}
+function shareWA(){const ref=getOrCreateRef();const msg=encodeURIComponent(`💧 Join me on AquaVita — save water, earn XP & get real cash via GPay!\nhttps://aquavita.app/?ref=${ref.code}`);window.open(`https://wa.me/?text=${msg}`,'_blank');}
+function shareTW(){const ref=getOrCreateRef();const msg=encodeURIComponent(`I'm saving water & earning XP on AquaVita 💧 Join me and earn real ₹ via GPay! https://aquavita.app/?ref=${ref.code}`);window.open(`https://twitter.com/intent/tweet?text=${msg}`,'_blank');}
+
+function simJoin(){
+  const ref=getOrCreateRef();
+  const names=['Arjun','Priya','Rohit','Anjali','Vivek','Meera','Kiran','Divya','Arun','Sneha','Ravi','Pooja','Nikhil','Kavya','Suresh','Lakshmi','Bharat','Asha'];
+  const name=names[Math.floor(Math.random()*names.length)];
+  ref.joined.push({name,date:new Date().toISOString()});ref.count=ref.joined.length;saveRef(ref);
+  const task=findTask(activeRTask);updateRMProg(task,ref);renderFriends(ref);
+  toast('🎉 Friend Joined!',name+' joined AquaVita via your link!');
+}
+
+function claimRef(){
+  const task=findTask(activeRTask);const ref=getOrCreateRef();
+  if(ref.joined.length<task.reqRef)return;
+  const lvlId=parseInt(activeRTask.split('_')[0]);
+  const lv=loadLvls();if(!lv[lvlId])lv[lvlId]={};
+  lv[lvlId][task.id]=true;saveLvls(lv);
+  const p=loadProg();p.xp=(p.xp||0)+task.xp;
+  if(!p.completedQuests)p.completedQuests=[];
+  if(!p.completedQuests.includes(task.name))p.completedQuests.push(task.name);
+  saveProg(p);
+  document.getElementById('nav-xp-count').textContent=p.xp.toLocaleString();
+  document.getElementById('hud-xp').textContent=p.xp.toLocaleString();
+  xpFloat(task.xp,window.innerWidth/2-30,window.innerHeight/2);
+  closeRM();
+  const lvl=LEVELS.find(l=>l.id===lvlId);const ld=lv[lvlId]||{};
+  buildTasks(lvl,ld);refreshProg(lvl,ld);
+  toast('⚡ Referral Claimed!','Recruited '+ref.joined.length+' warriors — +'+task.xp+' XP!');
+  const done=lvl.tasks.filter(t=>ld[t.id]).length;
+  if(done===lvl.tasks.length)setTimeout(()=>showLevelComplete(lvl,lv),800);
+  buildStrip();
+}
+
+// ---- LEVEL COMPLETE ----
+function showLevelComplete(lvl,lv){
+  document.getElementById('lc-icon').textContent=lvl.icon;
+  document.getElementById('lc-eyebrow').textContent=`⬡ LEVEL ${lvl.id} COMPLETE ⬡`;
+  document.getElementById('lc-title').textContent=`LEVEL ${lvl.id}\nCLEARED`;
+  document.getElementById('lc-sub').textContent=`${lvl.name} complete. You've earned the ${lvl.subtitle} title.`;
+  document.getElementById('lc-xp').textContent='+'+lvl.xpBonus.toLocaleString()+' XP BONUS';
+  const nextLvl=LEVELS.find(l=>l.id===lvl.id+1);
+  document.getElementById('lc-unlock').textContent=nextLvl?`🔓 Level ${nextLvl.id} — ${nextLvl.name} is now unlocked!`:'👑 You have reached the highest rank — LEGENDARY HERO!';
+  const p=loadProg();p.xp=(p.xp||0)+lvl.xpBonus;p.level=Math.max(p.level||1,lvl.id+1);
+  if(!p.history)p.history=[];p.history.push({date:new Date().toISOString(),xp:lvl.xpBonus,quests:lvl.tasks.length,water:0,levelComplete:lvl.id});
+  saveProg(p);document.getElementById('nav-xp-count').textContent=p.xp.toLocaleString();document.getElementById('hud-xp').textContent=p.xp.toLocaleString();
+  if(nextLvl)LEVELS[nextLvl.id-1].locked=false;
+  document.getElementById('level-complete').classList.add('show');
+  launchParticles(lvl.color);buildStrip();
+}
+function closeLevelComplete(){document.getElementById('level-complete').classList.remove('show');buildStrip();}
+
+function launchParticles(col){
+  const c=document.getElementById('lc-canvas');c.width=window.innerWidth;c.height=window.innerHeight;
+  const ctx=c.getContext('2d');const particles=[];
+  const cols=['#00f5ff','#00e5cc','#ffc107','#00e676','#ff9f43','#b060ff',col||'#fff'];
+  for(let i=0;i<220;i++)particles.push({x:Math.random()*c.width,y:c.height+10,vx:(Math.random()-.5)*6,vy:-(Math.random()*12+4),r:Math.random()*5+1.5,color:cols[Math.floor(Math.random()*cols.length)],life:1,decay:Math.random()*.01+.004,grav:.06});
+  let run=true;
+  function draw(){ctx.clearRect(0,0,c.width,c.height);let alive=false;for(let p of particles){if(p.life<=0)continue;alive=true;p.x+=p.vx;p.y+=p.vy;p.vy+=p.grav;p.life-=p.decay;ctx.globalAlpha=Math.max(0,p.life);ctx.fillStyle=p.color;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fill();}ctx.globalAlpha=1;if(alive&&run)requestAnimationFrame(draw);else ctx.clearRect(0,0,c.width,c.height);}
+  draw();setTimeout(()=>run=false,5000);
+}
+
+updateNav();buildStrip();openLevel(1);
+</script>
+</body>
+</html>

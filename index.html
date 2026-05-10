@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AquaVita — Save Water, Save Life</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --deep: #020d1a;
+    --abyss: #030f20;
+    --ocean: #0a2540;
+    --teal: #0e7c7b;
+    --cyan: #17c3b2;
+    --aqua: #48cae4;
+    --foam: #90e0ef;
+    --mist: #caf0f8;
+    --white: #f0faff;
+    --gold: #c9a84c;
+    --danger: #e05c2a;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { background: var(--deep); color: var(--white); font-family: 'Cormorant Garamond', Georgia, serif; overflow-x: hidden; cursor: none; }
+
+  /* Cursor */
+  .cursor { position: fixed; width: 12px; height: 12px; border-radius: 50%; background: var(--cyan); pointer-events: none; z-index: 9999; mix-blend-mode: screen; transition: transform 0.1s ease; }
+  .cursor-ring { position: fixed; width: 40px; height: 40px; border-radius: 50%; border: 1px solid rgba(72,202,228,0.5); pointer-events: none; z-index: 9998; transition: all 0.15s ease; }
+  .ripple-circle { position: fixed; width: 0; height: 0; border-radius: 50%; border: 1px solid rgba(72,202,228,0.6); transform: translate(-50%,-50%); pointer-events: none; z-index: 9997; animation: rippleOut 1s ease forwards; }
+  @keyframes rippleOut { to { width: 80px; height: 80px; opacity: 0; } }
+  #ripple-container { position: fixed; inset: 0; pointer-events: none; z-index: 9997; }
+  #progress-bar { position: fixed; top: 0; left: 0; height: 2px; background: linear-gradient(90deg, var(--teal), var(--cyan)); z-index: 1001; transition: width 0.1s; }
+
+  /* NAV */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+    padding: 1.5rem 4rem;
+    display: flex; justify-content: space-between; align-items: center;
+    background: linear-gradient(to bottom, rgba(2,13,26,0.98), transparent);
+    backdrop-filter: blur(2px);
+  }
+  .nav-logo { font-size: 1.4rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--aqua); font-family: 'Space Mono', monospace; font-weight: 700; text-decoration: none; }
+  .nav-logo span { color: var(--cyan); }
+  .nav-links { display: flex; gap: 2.5rem; list-style: none; }
+  .nav-links a { color: var(--foam); text-decoration: none; font-family: 'Space Mono', monospace; font-size: 0.68rem; letter-spacing: 0.2em; text-transform: uppercase; position: relative; transition: color 0.3s; }
+  .nav-links a::after { content: ''; position: absolute; bottom: -4px; left: 0; width: 0; height: 1px; background: var(--cyan); transition: width 0.3s ease; }
+  .nav-links a:hover { color: var(--cyan); }
+  .nav-links a:hover::after { width: 100%; }
+  .nav-links a.active { color: var(--cyan); }
+  .nav-links a.active::after { width: 100%; }
+
+  .nav-right { display: flex; align-items: center; gap: 1.2rem; }
+  .nav-xp-pill {
+    display: none; align-items: center; gap: 0.5rem;
+    background: rgba(23,195,178,0.12); border: 1px solid rgba(23,195,178,0.3);
+    border-radius: 100px; padding: 0.4rem 1rem;
+    font-family: 'Space Mono', monospace; font-size: 0.6rem; color: var(--cyan);
+    letter-spacing: 0.1em; cursor: pointer; transition: all 0.3s;
+  }
+  .nav-xp-pill:hover { background: rgba(23,195,178,0.2); border-color: var(--cyan); }
+  .nav-xp-pill.visible { display: flex; }
+  .xp-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--cyan); animation: pulse 2s ease infinite; }
+
+  .nav-signin-btn {
+    font-family: 'Space Mono', monospace; font-size: 0.62rem; letter-spacing: 0.15em;
+    text-transform: uppercase; color: var(--deep); background: var(--cyan);
+    border: none; padding: 0.6rem 1.4rem; cursor: pointer; transition: all 0.3s;
+  }
+  .nav-signin-btn:hover { background: var(--aqua); transform: translateY(-1px); }
+  .nav-signin-btn.signed-in { background: transparent; color: var(--foam); border: 1px solid rgba(72,202,228,0.3); }
+
+  /* HERO */
+  #hero { position: relative; height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; }
+  #canvas-hero { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .hero-content { position: relative; z-index: 10; text-align: center; padding: 2rem; }
+  .hero-eyebrow { font-family: 'Space Mono', monospace; font-size: 0.65rem; letter-spacing: 0.5em; text-transform: uppercase; color: var(--cyan); margin-bottom: 2rem; opacity: 0; animation: fadeUp 1s ease 0.5s forwards; }
+  .hero-title { font-size: clamp(4rem, 10vw, 9rem); font-weight: 300; line-height: 0.9; margin-bottom: 2rem; opacity: 0; animation: fadeUp 1.2s ease 0.8s forwards; }
+  .hero-title em { font-style: italic; color: var(--aqua); display: block; }
+  .hero-sub { font-size: 1.2rem; font-weight: 300; color: var(--foam); max-width: 480px; margin: 0 auto 3rem; line-height: 1.7; opacity: 0; animation: fadeUp 1s ease 1.2s forwards; }
+  .hero-cta { display: inline-block; padding: 1rem 3rem; border: 1px solid var(--cyan); color: var(--cyan); font-family: 'Space Mono', monospace; font-size: 0.7rem; letter-spacing: 0.3em; text-transform: uppercase; text-decoration: none; position: relative; overflow: hidden; transition: color 0.4s; opacity: 0; animation: fadeUp 1s ease 1.5s forwards; }
+  .hero-cta::before { content: ''; position: absolute; inset: 0; background: var(--cyan); transform: translateX(-101%); transition: transform 0.4s cubic-bezier(0.4,0,0.2,1); z-index: -1; }
+  .hero-cta:hover { color: var(--deep); }
+  .hero-cta:hover::before { transform: translateX(0); }
+
+  /* XP Banner (shows for signed-in users) */
+  .xp-hero-banner {
+    display: none; margin-top: 2rem;
+    background: rgba(23,195,178,0.08); border: 1px solid rgba(23,195,178,0.2);
+    border-radius: 4px; padding: 0.8rem 2rem;
+    font-family: 'Space Mono', monospace; font-size: 0.6rem; letter-spacing: 0.15em;
+    color: var(--foam); opacity: 0; animation: fadeUp 1s ease 1.8s forwards;
+  }
+  .xp-hero-banner.visible { display: block; }
+  .xp-hero-banner strong { color: var(--cyan); }
+
+  .scroll-indicator { position: absolute; bottom: 2.5rem; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 0.5rem; opacity: 0; animation: fadeUp 1s ease 2s forwards; z-index: 10; }
+  .scroll-indicator span { font-family: 'Space Mono', monospace; font-size: 0.55rem; letter-spacing: 0.3em; color: var(--foam); text-transform: uppercase; }
+  .scroll-line { width: 1px; height: 50px; background: linear-gradient(to bottom, var(--cyan), transparent); animation: scrollPulse 2s ease infinite; }
+
+  /* STATS */
+  #stats { padding: 8rem 4rem; background: linear-gradient(180deg, var(--deep) 0%, var(--abyss) 100%); position: relative; overflow: hidden; }
+  #stats::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, var(--teal), transparent); }
+  .section-label { font-family: 'Space Mono', monospace; font-size: 0.6rem; letter-spacing: 0.5em; text-transform: uppercase; color: var(--teal); margin-bottom: 1rem; display: block; }
+  .section-title { font-size: clamp(2.5rem, 5vw, 4.5rem); font-weight: 300; line-height: 1.1; max-width: 700px; margin-bottom: 5rem; }
+  .section-title em { font-style: italic; color: var(--aqua); }
+  .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 3px; margin-bottom: 8rem; }
+  .stat-card { background: rgba(14,124,123,0.06); border: 1px solid rgba(72,202,228,0.1); padding: 3rem 2.5rem; position: relative; overflow: hidden; transition: border-color 0.4s, background 0.4s; opacity: 0; transform: translateY(30px); }
+  .stat-card.visible { animation: fadeUp 0.8s ease forwards; }
+  .stat-card:nth-child(2) { animation-delay: 0.1s; }
+  .stat-card:nth-child(3) { animation-delay: 0.2s; }
+  .stat-card:nth-child(4) { animation-delay: 0.3s; }
+  .stat-card::after { content: ''; position: absolute; bottom: 0; left: 0; height: 2px; width: 0; background: linear-gradient(90deg, var(--teal), var(--cyan)); transition: width 0.6s ease; }
+  .stat-card:hover { border-color: rgba(72,202,228,0.4); background: rgba(14,124,123,0.12); }
+  .stat-card:hover::after { width: 100%; }
+  .stat-number { font-size: 4rem; font-weight: 300; line-height: 1; margin-bottom: 0.5rem; background: linear-gradient(135deg, var(--foam), var(--cyan)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+  .stat-unit { font-size: 1.5rem; opacity: 0.7; }
+  .stat-label { font-family: 'Space Mono', monospace; font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--foam); opacity: 0.6; margin-top: 0.5rem; }
+  .stat-desc { margin-top: 1rem; font-size: 0.95rem; color: var(--foam); opacity: 0.5; line-height: 1.6; font-weight: 300; }
+
+  /* GLOBE */
+  #globe-section { padding: 8rem 4rem; display: grid; grid-template-columns: 1fr 1fr; gap: 6rem; align-items: center; background: var(--abyss); position: relative; overflow: hidden; }
+  .globe-wrapper { position: relative; display: flex; justify-content: center; }
+  #globe-canvas { border-radius: 50%; box-shadow: 0 0 80px rgba(23,195,178,0.3), 0 0 200px rgba(23,195,178,0.1); }
+  .globe-ring { position: absolute; border-radius: 50%; border: 1px solid rgba(72,202,228,0.15); animation: rotateSlow 20s linear infinite; }
+  .globe-ring-1 { width: 110%; height: 110%; top: -5%; left: -5%; animation-duration: 15s; }
+  .globe-ring-2 { width: 130%; height: 130%; top: -15%; left: -15%; animation-duration: 25s; animation-direction: reverse; }
+  .globe-text h2 { font-size: clamp(2rem, 4vw, 3.5rem); font-weight: 300; line-height: 1.2; margin-bottom: 2rem; }
+  .globe-text p { font-size: 1.1rem; color: var(--foam); opacity: 0.7; line-height: 1.8; margin-bottom: 1.5rem; }
+  .globe-text strong { color: var(--cyan); font-weight: 400; font-style: italic; }
+  .data-pill { display: inline-flex; align-items: center; gap: 0.8rem; background: rgba(14,124,123,0.15); border: 1px solid rgba(23,195,178,0.2); border-radius: 100px; padding: 0.7rem 1.4rem; font-family: 'Space Mono', monospace; font-size: 0.65rem; letter-spacing: 0.1em; color: var(--aqua); margin: 0.4rem 0.3rem; }
+  .pill-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--cyan); animation: pulse 2s ease infinite; }
+
+  /* TIPS */
+  #tips { padding: 8rem 4rem; background: var(--deep); position: relative; }
+  .tips-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; margin-top: 5rem; }
+  .tip-card { background: rgba(10,37,64,0.8); border: 1px solid rgba(72,202,228,0.07); padding: 3rem 2.5rem; position: relative; overflow: hidden; transition: all 0.4s ease; opacity: 0; }
+  .tip-card.visible { animation: fadeUp 0.7s ease forwards; }
+  .tip-card:nth-child(2) { animation-delay: 0.1s; }
+  .tip-card:nth-child(3) { animation-delay: 0.2s; }
+  .tip-card:nth-child(4) { animation-delay: 0.3s; }
+  .tip-card:nth-child(5) { animation-delay: 0.4s; }
+  .tip-card:nth-child(6) { animation-delay: 0.5s; }
+  .tip-card:hover { background: rgba(14,124,123,0.1); border-color: rgba(72,202,228,0.25); transform: translateY(-6px); }
+  .tip-number { font-family: 'Space Mono', monospace; font-size: 0.6rem; color: var(--teal); letter-spacing: 0.3em; margin-bottom: 1.5rem; }
+  .tip-icon { font-size: 2.5rem; margin-bottom: 1.2rem; display: block; filter: drop-shadow(0 0 8px rgba(23,195,178,0.5)); }
+  .tip-title { font-size: 1.4rem; font-weight: 400; margin-bottom: 1rem; color: var(--foam); }
+  .tip-desc { font-size: 0.95rem; color: var(--foam); opacity: 0.55; line-height: 1.8; font-weight: 300; }
+  .tip-save { margin-top: 1.5rem; display: flex; align-items: center; gap: 0.5rem; font-family: 'Space Mono', monospace; font-size: 0.6rem; color: var(--cyan); letter-spacing: 0.1em; }
+  /* XP badge on tip card */
+  .tip-xp { margin-top: 0.5rem; font-family: 'Space Mono', monospace; font-size: 0.58rem; color: var(--gold); letter-spacing: 0.1em; }
+
+  /* WAVE CTA */
+  #wave-cta { position: relative; height: 70vh; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; text-align: center; }
+  #wave-canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .wave-content { position: relative; z-index: 5; padding: 2rem; }
+  .wave-content h2 { font-size: clamp(3rem, 7vw, 7rem); font-weight: 300; line-height: 0.95; margin-bottom: 2.5rem; }
+  .wave-content h2 em { font-style: italic; color: var(--aqua); display: block; }
+  .wave-cta-btn { display: inline-block; padding: 1.2rem 4rem; background: linear-gradient(135deg, var(--teal), var(--cyan)); color: var(--deep); font-family: 'Space Mono', monospace; font-size: 0.7rem; letter-spacing: 0.3em; text-transform: uppercase; text-decoration: none; font-weight: 700; transition: all 0.4s; box-shadow: 0 0 40px rgba(23,195,178,0.3); }
+  .wave-cta-btn:hover { transform: translateY(-3px); box-shadow: 0 20px 60px rgba(23,195,178,0.4); }
+
+  /* FOOTER */
+  footer { padding: 4rem; border-top: 1px solid rgba(72,202,228,0.1); display: flex; justify-content: space-between; align-items: center; background: var(--abyss); }
+  .footer-logo { font-family: 'Space Mono', monospace; font-size: 1rem; letter-spacing: 0.3em; color: var(--aqua); }
+  .footer-copy { font-family: 'Space Mono', monospace; font-size: 0.6rem; color: var(--foam); opacity: 0.3; letter-spacing: 0.15em; }
+  .footer-tagline { font-size: 1rem; font-style: italic; color: var(--foam); opacity: 0.4; }
+
+  /* ANIMATIONS */
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes scrollPulse { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
+  @keyframes rotateSlow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+  @keyframes pulse { 0%, 100% { opacity: 0.4; transform: scale(1); } 50% { opacity: 1; transform: scale(1.3); } }
+
+  /* ============================================ */
+  /* SIGN-IN MODAL */
+  /* ============================================ */
+  .modal-overlay {
+    position: fixed; inset: 0; z-index: 10000;
+    background: rgba(2,13,26,0.92);
+    backdrop-filter: blur(12px);
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.4s ease;
+  }
+  .modal-overlay.open { opacity: 1; pointer-events: all; }
+
+  .modal-box {
+    background: linear-gradient(135deg, #030f20, #0a2540);
+    border: 1px solid rgba(72,202,228,0.2);
+    padding: 3.5rem;
+    max-width: 480px; width: 90%;
+    position: relative;
+    transform: translateY(20px) scale(0.97);
+    transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1);
+    box-shadow: 0 0 80px rgba(23,195,178,0.15), 0 40px 100px rgba(0,0,0,0.5);
+  }
+  .modal-overlay.open .modal-box { transform: translateY(0) scale(1); }
+
+  /* 3D water drop decoration */
+  .modal-drop {
+    position: absolute; top: -30px; right: 40px;
+    font-size: 3.5rem;
+    filter: drop-shadow(0 0 20px rgba(72,202,228,0.6));
+    animation: dropFloat 3s ease infinite;
+  }
+  @keyframes dropFloat {
+    0%, 100% { transform: translateY(0) rotate(-5deg); }
+    50% { transform: translateY(-10px) rotate(5deg); }
+  }
+
+  .modal-corner {
+    position: absolute;
+    width: 20px; height: 20px;
+    border-color: var(--cyan);
+    border-style: solid;
+    opacity: 0.4;
+  }
+  .modal-corner-tl { top: 12px; left: 12px; border-width: 1px 0 0 1px; }
+  .modal-corner-tr { top: 12px; right: 12px; border-width: 1px 1px 0 0; }
+  .modal-corner-bl { bottom: 12px; left: 12px; border-width: 0 0 1px 1px; }
+  .modal-corner-br { bottom: 12px; right: 12px; border-width: 0 1px 1px 0; }
+
+  .modal-close {
+    position: absolute; top: 1.2rem; right: 1.5rem;
+    background: none; border: none; color: var(--foam); opacity: 0.4;
+    font-size: 1.5rem; cursor: pointer; transition: opacity 0.3s; line-height: 1;
+  }
+  .modal-close:hover { opacity: 1; }
+
+  .modal-eyebrow { font-family: 'Space Mono', monospace; font-size: 0.55rem; letter-spacing: 0.5em; color: var(--teal); text-transform: uppercase; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem; }
+  .modal-eyebrow::before { content: ''; width: 20px; height: 1px; background: var(--teal); }
+
+  .modal-box h2 { font-size: 2.5rem; font-weight: 300; margin-bottom: 0.5rem; line-height: 1.1; }
+  .modal-box h2 em { font-style: italic; color: var(--aqua); }
+  .modal-desc { font-size: 1rem; color: var(--foam); opacity: 0.6; line-height: 1.7; margin-bottom: 2.5rem; font-weight: 300; }
+
+  /* XP perks preview */
+  .modal-perks { display: flex; gap: 1.5rem; margin-bottom: 2.5rem; }
+  .perk-item { flex: 1; text-align: center; padding: 1rem; background: rgba(14,124,123,0.1); border: 1px solid rgba(23,195,178,0.1); }
+  .perk-icon { font-size: 1.5rem; display: block; margin-bottom: 0.4rem; }
+  .perk-label { font-family: 'Space Mono', monospace; font-size: 0.5rem; letter-spacing: 0.15em; color: var(--foam); opacity: 0.6; text-transform: uppercase; }
+
+  .form-group { margin-bottom: 1.2rem; }
+  .form-group input {
+    width: 100%; padding: 0.9rem 1.2rem;
+    background: rgba(10,37,64,0.8);
+    border: 1px solid rgba(72,202,228,0.15);
+    color: var(--white); font-family: 'Space Mono', monospace; font-size: 0.7rem;
+    outline: none; transition: border-color 0.3s;
+    letter-spacing: 0.05em;
+  }
+  .form-group input::placeholder { color: rgba(144,224,239,0.3); }
+  .form-group input:focus { border-color: var(--cyan); }
+
+  .signin-submit {
+    width: 100%; padding: 1rem;
+    background: linear-gradient(135deg, var(--teal), var(--cyan));
+    color: var(--deep); font-family: 'Space Mono', monospace; font-size: 0.7rem;
+    letter-spacing: 0.3em; text-transform: uppercase; font-weight: 700;
+    border: none; cursor: pointer; transition: all 0.3s;
+    box-shadow: 0 0 30px rgba(23,195,178,0.3);
+    margin-top: 0.5rem;
+  }
+  .signin-submit:hover { transform: translateY(-2px); box-shadow: 0 10px 40px rgba(23,195,178,0.4); }
+
+  .modal-footer-text { font-family: 'Space Mono', monospace; font-size: 0.55rem; color: var(--foam); opacity: 0.3; text-align: center; margin-top: 1.2rem; letter-spacing: 0.1em; }
+
+  /* Toast notification */
+  .toast {
+    position: fixed; bottom: 3rem; right: 3rem; z-index: 9990;
+    background: linear-gradient(135deg, #030f20, #0a2540);
+    border: 1px solid rgba(23,195,178,0.3);
+    padding: 1.2rem 2rem; max-width: 360px;
+    transform: translateX(120%); transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1);
+    box-shadow: 0 0 40px rgba(23,195,178,0.2);
+  }
+  .toast.show { transform: translateX(0); }
+  .toast-title { font-family: 'Space Mono', monospace; font-size: 0.6rem; letter-spacing: 0.2em; color: var(--cyan); text-transform: uppercase; margin-bottom: 0.4rem; }
+  .toast-body { font-size: 0.95rem; color: var(--foam); opacity: 0.8; line-height: 1.5; }
+  .toast-xp { font-family: 'Space Mono', monospace; font-size: 0.7rem; color: var(--gold); margin-top: 0.3rem; letter-spacing: 0.1em; }
+
+  /* 3D floating water drops decoration */
+  .float-drops { position: absolute; inset: 0; pointer-events: none; overflow: hidden; z-index: 1; }
+  .float-drop { position: absolute; font-size: 1.2rem; opacity: 0.15; animation: floatDrop linear infinite; }
+  @keyframes floatDrop {
+    from { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+    10% { opacity: 0.15; }
+    90% { opacity: 0.15; }
+    to { transform: translateY(-10vh) rotate(360deg); opacity: 0; }
+  }
+
+  /* Earn CTA Strip */
+  .earn-strip {
+    background: linear-gradient(90deg, rgba(14,124,123,0.15), rgba(23,195,178,0.08), rgba(14,124,123,0.15));
+    border-top: 1px solid rgba(23,195,178,0.1);
+    border-bottom: 1px solid rgba(23,195,178,0.1);
+    padding: 1.2rem 4rem;
+    display: flex; align-items: center; justify-content: space-between;
+    position: relative; overflow: hidden;
+  }
+  .earn-strip::before {
+    content: ''; position: absolute; top: 0; left: -100%; width: 50%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(23,195,178,0.05), transparent);
+    animation: stripShimmer 3s ease infinite;
+  }
+  @keyframes stripShimmer { to { left: 200%; } }
+  .earn-strip-text { font-family: 'Space Mono', monospace; font-size: 0.65rem; letter-spacing: 0.2em; color: var(--foam); opacity: 0.7; }
+  .earn-strip-text strong { color: var(--gold); opacity: 1; }
+  .earn-strip-link { font-family: 'Space Mono', monospace; font-size: 0.62rem; letter-spacing: 0.15em; color: var(--cyan); text-decoration: none; text-transform: uppercase; display: flex; align-items: center; gap: 0.5rem; transition: gap 0.3s; }
+  .earn-strip-link:hover { gap: 1rem; }
+</style>
+</head>
+<body>
+
+<div id="cursor" class="cursor"></div>
+<div id="cursor-ring" class="cursor-ring"></div>
+<div id="ripple-container"></div>
+<div id="progress-bar"></div>
+
+<!-- ============ SIGN-IN MODAL ============ -->
+<div class="modal-overlay" id="signin-modal">
+  <div class="modal-box">
+    <div class="modal-corner modal-corner-tl"></div>
+    <div class="modal-corner modal-corner-tr"></div>
+    <div class="modal-corner modal-corner-bl"></div>
+    <div class="modal-corner modal-corner-br"></div>
+    <div class="modal-drop">💧</div>
+    <button class="modal-close" onclick="closeSignin()">×</button>
+    <div class="modal-eyebrow">⬡ Aquavita Hero Protocol</div>
+    <h2>Join the<br><em>Movement</em></h2>
+    <p class="modal-desc">Sign in to track your XP, complete water-saving missions, and convert your impact into real rewards.</p>
+    <div class="modal-perks">
+      <div class="perk-item">
+        <span class="perk-icon">⚡</span>
+        <div class="perk-label">Earn XP</div>
+      </div>
+      <div class="perk-item">
+        <span class="perk-icon">🏅</span>
+        <div class="perk-label">Get Badges</div>
+      </div>
+      <div class="perk-item">
+        <span class="perk-icon">💰</span>
+        <div class="perk-label">Cash Out</div>
+      </div>
+    </div>
+    <div class="form-group">
+      <input type="text" id="signin-name" placeholder="YOUR NAME" autocomplete="off">
+    </div>
+    <div class="form-group">
+      <input type="email" id="signin-email" placeholder="EMAIL ADDRESS" autocomplete="off">
+    </div>
+    <button class="signin-submit" onclick="submitSignin()">⚡ Begin Your Quest</button>
+    <p class="modal-footer-text">YOUR DATA IS STORED LOCALLY. NO ACCOUNT REQUIRED.</p>
+  </div>
+</div>
+
+<!-- ============ TOAST ============ -->
+<div class="toast" id="toast">
+  <div class="toast-title" id="toast-title">Welcome Back</div>
+  <div class="toast-body" id="toast-body">Your progress has been restored.</div>
+  <div class="toast-xp" id="toast-xp"></div>
+</div>
+
+<!-- ============ NAV ============ -->
+<nav>
+  <a href="index.html" class="nav-logo">AQUA<span>VITA</span></a>
+  <ul class="nav-links">
+    <li><a href="about.html">About</a></li>
+    <li><a href="levels.html">Levels</a></li>
+    <li><a href="earn.html">Earn</a></li>
+    <li><a href="community.html">Community</a></li>
+    <li><a href="profile.html">My Profile</a></li>
+  </ul>
+  <div class="nav-right">
+    <div class="nav-xp-pill" id="nav-xp-pill">
+      <div class="xp-dot"></div>
+      <span id="nav-xp-count">0</span>&nbsp;XP
+    </div>
+    <button class="nav-signin-btn" id="nav-signin-btn" onclick="openSignin()">Sign In</button>
+  </div>
+</nav>
+
+<!-- ============ HERO ============ -->
+<section id="hero">
+  <canvas id="canvas-hero"></canvas>
+  <div class="float-drops" id="float-drops"></div>
+  <div class="hero-content">
+    <p class="hero-eyebrow">⬡ The Global Water Crisis</p>
+    <h1 class="hero-title">
+      Save<br><em>Water.</em>
+    </h1>
+    <p class="hero-sub">2.2 billion people lack access to clean water. Every drop you save is a life you touch.</p>
+    <a href="#stats" class="hero-cta">Discover the Crisis</a>
+    <div class="xp-hero-banner" id="xp-hero-banner">
+      Complete missions → Earn XP → <strong>Convert to cash via GPay</strong>
+    </div>
+  </div>
+  <div class="scroll-indicator">
+    <span>Scroll</span>
+    <div class="scroll-line"></div>
+  </div>
+</section>
+
+<!-- EARN STRIP -->
+<div class="earn-strip" id="earn-strip" style="display:none">
+  <span class="earn-strip-text">Complete water-saving tasks → Earn XP → <strong>Convert to ₹ via GPay</strong></span>
+  <a href="earn.html" class="earn-strip-link">Redeem Now →</a>
+</div>
+
+<!-- ============ STATS ============ -->
+<section id="stats">
+  <span class="section-label">The Numbers Don't Lie</span>
+  <h2 class="section-title">A world in <em>thirst</em></h2>
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-number"><span class="counter-val" data-target="2.2">0</span><span class="stat-unit">B</span></div>
+      <div class="stat-label">People Affected</div>
+      <div class="stat-desc">Lack access to safely managed drinking water services worldwide.</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number"><span class="counter-val" data-target="785">0</span><span class="stat-unit">M</span></div>
+      <div class="stat-label">No Basic Access</div>
+      <div class="stat-desc">People lack even a basic drinking water service globally.</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number"><span class="counter-val" data-target="3.6">0</span><span class="stat-unit">B</span></div>
+      <div class="stat-label">Face Scarcity</div>
+      <div class="stat-desc">Experience water scarcity for at least one month per year.</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number"><span class="counter-val" data-target="6000">0</span><span class="stat-unit">+</span></div>
+      <div class="stat-label">Children Daily</div>
+      <div class="stat-desc">Children under 5 die each day from water-related diseases.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ GLOBE ============ -->
+<section id="globe-section">
+  <div class="globe-wrapper">
+    <div class="globe-ring globe-ring-1"></div>
+    <div class="globe-ring globe-ring-2"></div>
+    <canvas id="globe-canvas" width="450" height="450"></canvas>
+  </div>
+  <div class="globe-text">
+    <span class="section-label">Earth's Water Reality</span>
+    <h2>Only <em style="color:var(--cyan)">3%</em> of<br>Earth's water is<br><em>freshwater</em></h2>
+    <p>Of all the water on our blue planet, <strong>97% is saltwater</strong> in our oceans. Of the remaining 3%, most is locked in glaciers and ice caps. A mere <strong>0.3% is accessible</strong> in rivers, lakes, and groundwater.</p>
+    <p>Yet we treat this finite, irreplaceable resource as if it were infinite. Industrial agriculture uses <strong>70% of all freshwater</strong>, while millions walk miles daily for a single glass.</p>
+    <div style="margin-top: 2rem; display: flex; flex-wrap: wrap;">
+      <span class="data-pill"><span class="pill-dot"></span> 97% Saltwater</span>
+      <span class="data-pill"><span class="pill-dot" style="background:var(--gold)"></span> 2.7% Frozen</span>
+      <span class="data-pill"><span class="pill-dot" style="background:var(--cyan)"></span> 0.3% Accessible</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============ TIPS ============ -->
+<section id="tips">
+  <span class="section-label">Actions & Solutions</span>
+  <h2 class="section-title">How you can <em>make a difference</em></h2>
+  <div class="tips-grid">
+    <div class="tip-card">
+      <div class="tip-number">01</div>
+      <span class="tip-icon">🚿</span>
+      <h3 class="tip-title">Shorter Showers</h3>
+      <p class="tip-desc">Reduce shower time from 10 to 5 minutes. Every minute you cut saves roughly 10 litres of water — a simple act with a massive cumulative impact.</p>
+      <div class="tip-save">💧 Saves 3,650 L / year</div>
+      <div class="tip-xp">⚡ Earn 80 XP on Levels</div>
+    </div>
+    <div class="tip-card">
+      <div class="tip-number">02</div>
+      <span class="tip-icon">🌧️</span>
+      <h3 class="tip-title">Harvest Rainwater</h3>
+      <p class="tip-desc">Install a rain barrel or cistern system to capture roof runoff. Use harvested water for garden irrigation, washing vehicles, and outdoor cleaning.</p>
+      <div class="tip-save">💧 Saves 1,300 L / month</div>
+      <div class="tip-xp">⚡ Earn 120 XP on Levels</div>
+    </div>
+    <div class="tip-card">
+      <div class="tip-number">03</div>
+      <span class="tip-icon">🔧</span>
+      <h3 class="tip-title">Fix Every Leak</h3>
+      <p class="tip-desc">A dripping faucet wastes 15,000+ litres per year. A leaky toilet can waste 200,000 litres. Regular inspection and swift repair prevents staggering losses.</p>
+      <div class="tip-save">💧 Saves 15,000 L / year</div>
+      <div class="tip-xp">⚡ Earn 150 XP on Levels</div>
+    </div>
+    <div class="tip-card">
+      <div class="tip-number">04</div>
+      <span class="tip-icon">🌱</span>
+      <h3 class="tip-title">Smart Gardening</h3>
+      <p class="tip-desc">Water plants at dawn or dusk to minimize evaporation. Use drip irrigation, native drought-resistant plants, and mulch to retain soil moisture naturally.</p>
+      <div class="tip-save">💧 Saves 50% garden water</div>
+      <div class="tip-xp">⚡ Earn 100 XP on Levels</div>
+    </div>
+    <div class="tip-card">
+      <div class="tip-number">05</div>
+      <span class="tip-icon">🍽️</span>
+      <h3 class="tip-title">Mindful Diet</h3>
+      <p class="tip-desc">One hamburger requires 2,400 litres of water to produce. Shifting toward plant-based meals even once a week dramatically reduces your water footprint.</p>
+      <div class="tip-save">💧 Saves 100,000 L / year</div>
+      <div class="tip-xp">⚡ Earn 200 XP on Levels</div>
+    </div>
+    <div class="tip-card">
+      <div class="tip-number">06</div>
+      <span class="tip-icon">⚙️</span>
+      <h3 class="tip-title">Efficient Appliances</h3>
+      <p class="tip-desc">Upgrade to water-efficient dishwashers and washing machines. Only run full loads. A modern efficient washer uses 50% less water than a decade-old model.</p>
+      <div class="tip-save">💧 Saves 20,000 L / year</div>
+      <div class="tip-xp">⚡ Earn 180 XP on Levels</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ WAVE CTA ============ -->
+<section id="wave-cta">
+  <canvas id="wave-canvas"></canvas>
+  <div class="wave-content">
+    <h2>Every Drop<br><em>Counts.</em></h2>
+    <p style="font-size:1.1rem; color:var(--foam); opacity:0.7; margin-bottom:2.5rem; font-weight:300;">Accept quests. Earn XP. Turn your impact into rewards.</p>
+    <a href="levels.html" class="wave-cta-btn">Take the Pledge ⚡</a>
+  </div>
+</section>
+
+<!-- ============ FOOTER ============ -->
+<footer>
+  <div class="footer-logo">AQUAVITA</div>
+  <p class="footer-tagline">Water is life. Don't waste it.</p>
+  <p class="footer-copy">© 2026 AquaVita Initiative</p>
+</footer>
+
+<script>
+// ===== USER STATE =====
+function loadUser() {
+  try { return JSON.parse(localStorage.getItem('aq_user')) || null; } catch { return null; }
+}
+function loadProgress() {
+  try { return JSON.parse(localStorage.getItem('aq_progress')) || { xp: 0, level: 1, totalWater: 0, completedQuests: [], badges: [], streak: 1 }; } catch { return { xp: 0, level: 1, totalWater: 0, completedQuests: [], badges: [], streak: 1 }; }
+}
+
+function updateNavState() {
+  const user = loadUser();
+  const progress = loadProgress();
+  const pill = document.getElementById('nav-xp-pill');
+  const btn = document.getElementById('nav-signin-btn');
+  const earnStrip = document.getElementById('earn-strip');
+  const xpBanner = document.getElementById('xp-hero-banner');
+  if (user && user.isLoggedIn) {
+    document.getElementById('nav-xp-count').textContent = progress.xp.toLocaleString();
+    pill.classList.add('visible');
+    btn.textContent = user.name.split(' ')[0];
+    btn.classList.add('signed-in');
+    btn.onclick = () => window.location.href = 'profile.html';
+    if (earnStrip) earnStrip.style.display = 'flex';
+    if (xpBanner) xpBanner.classList.add('visible');
+  }
+}
+
+// Sign-in modal
+function openSignin() {
+  const user = loadUser();
+  if (user && user.isLoggedIn) { window.location.href = 'profile.html'; return; }
+  document.getElementById('signin-modal').classList.add('open');
+}
+function closeSignin() {
+  document.getElementById('signin-modal').classList.remove('open');
+}
+function submitSignin() {
+  const name = document.getElementById('signin-name').value.trim();
+  const email = document.getElementById('signin-email').value.trim();
+  if (!name) { document.getElementById('signin-name').style.borderColor = 'var(--danger)'; return; }
+  const user = { name, email, isLoggedIn: true, joinDate: new Date().toISOString() };
+  localStorage.setItem('aq_user', JSON.stringify(user));
+  closeSignin();
+  updateNavState();
+  showToast('⚡ Welcome, ' + name + '!', 'Your AquaVita journey begins now. Complete missions to earn XP.', '🎯 100 Bonus XP Awarded');
+  // Award welcome XP
+  const p = loadProgress();
+  if (!p.welcomeBonus) {
+    p.xp += 100; p.welcomeBonus = true;
+    localStorage.setItem('aq_progress', JSON.stringify(p));
+    document.getElementById('nav-xp-count').textContent = p.xp.toLocaleString();
+  }
+}
+
+function showToast(title, body, xp) {
+  const t = document.getElementById('toast');
+  document.getElementById('toast-title').textContent = title;
+  document.getElementById('toast-body').textContent = body;
+  document.getElementById('toast-xp').textContent = xp || '';
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 4000);
+}
+
+// Close modal on overlay click
+document.getElementById('signin-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeSignin();
+});
+
+// ===== FLOATING DROPS =====
+(function() {
+  const container = document.getElementById('float-drops');
+  const drops = ['💧','💦','🌊'];
+  for (let i = 0; i < 12; i++) {
+    const d = document.createElement('div');
+    d.className = 'float-drop';
+    d.textContent = drops[Math.floor(Math.random() * drops.length)];
+    d.style.left = Math.random() * 100 + '%';
+    d.style.animationDuration = (15 + Math.random() * 20) + 's';
+    d.style.animationDelay = (-Math.random() * 25) + 's';
+    d.style.fontSize = (0.8 + Math.random() * 1.2) + 'rem';
+    container.appendChild(d);
+  }
+})();
+
+// ===== CURSOR =====
+const cursor = document.getElementById('cursor');
+const cursorRing = document.getElementById('cursor-ring');
+const rippleContainer = document.getElementById('ripple-container');
+let mx = 0, my = 0, rx = 0, ry = 0;
+document.addEventListener('mousemove', e => {
+  mx = e.clientX; my = e.clientY;
+  cursor.style.left = mx + 'px'; cursor.style.top = my + 'px';
+});
+function animateRing() {
+  rx += (mx - rx) * 0.12; ry += (my - ry) * 0.12;
+  cursorRing.style.left = (rx - 20) + 'px'; cursorRing.style.top = (ry - 20) + 'px';
+  requestAnimationFrame(animateRing);
+}
+animateRing();
+document.addEventListener('click', e => {
+  const r = document.createElement('div');
+  r.className = 'ripple-circle';
+  r.style.left = e.clientX + 'px'; r.style.top = e.clientY + 'px';
+  rippleContainer.appendChild(r);
+  setTimeout(() => r.remove(), 1000);
+});
+
+// ===== PROGRESS BAR =====
+const progressBar = document.getElementById('progress-bar');
+window.addEventListener('scroll', () => {
+  const pct = (window.scrollY / (document.body.scrollHeight - window.innerHeight)) * 100;
+  progressBar.style.width = pct + '%';
+});
+
+// ===== HERO CANVAS =====
+(function() {
+  const canvas = document.getElementById('canvas-hero');
+  const ctx = canvas.getContext('2d');
+  let W, H, particles = [], mouse = {x: -1000, y: -1000};
+  function resize() { W = canvas.width = canvas.offsetWidth; H = canvas.height = canvas.offsetHeight; initParticles(); }
+  function initParticles() {
+    particles = [];
+    const count = Math.floor(W * H / 6000);
+    for (let i = 0; i < count; i++) {
+      particles.push({ x: Math.random() * W, y: Math.random() * H, r: Math.random() * 2.5 + 0.5, vx: (Math.random() - 0.5) * 0.3, vy: (Math.random() - 0.5) * 0.3, alpha: Math.random() * 0.5 + 0.1, color: Math.random() > 0.5 ? '#17c3b2' : '#48cae4' });
+    }
+  }
+  canvas.addEventListener('mousemove', e => { const r = canvas.getBoundingClientRect(); mouse.x = e.clientX - r.left; mouse.y = e.clientY - r.top; });
+  const cols = 40, rows = 20;
+  let grid = [];
+  for (let i = 0; i <= rows; i++) { grid[i] = []; for (let j = 0; j <= cols; j++) { grid[i][j] = { phase: Math.random() * Math.PI * 2, speed: Math.random() * 0.02 + 0.01 }; } }
+  let t = 0;
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+    const bg = ctx.createLinearGradient(0, 0, 0, H);
+    bg.addColorStop(0, '#020d1a'); bg.addColorStop(0.5, '#030f20'); bg.addColorStop(1, '#020a18');
+    ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
+    ctx.strokeStyle = 'rgba(23,195,178,0.05)'; ctx.lineWidth = 0.5;
+    for (let i = 0; i < rows; i++) {
+      for (let j = 0; j < cols; j++) {
+        const x1 = (j / cols) * W, y1 = (i / rows) * H + Math.sin(t * grid[i][j].speed * 50 + grid[i][j].phase) * 15;
+        const x2 = ((j+1) / cols) * W, y2 = (i / rows) * H + Math.sin(t * grid[i][j+1].speed * 50 + grid[i][j+1].phase) * 15;
+        ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+      }
+    }
+    for (let p of particles) {
+      const dx = mouse.x - p.x, dy = mouse.y - p.y, dist = Math.sqrt(dx*dx + dy*dy);
+      if (dist < 100) { p.vx -= (dx / dist) * 0.5; p.vy -= (dy / dist) * 0.5; }
+      p.vx *= 0.98; p.vy *= 0.98; p.x += p.vx; p.y += p.vy;
+      if (p.x < 0) p.x = W; if (p.x > W) p.x = 0; if (p.y < 0) p.y = H; if (p.y > H) p.y = 0;
+      ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fillStyle = p.color + Math.floor(p.alpha * 255).toString(16).padStart(2,'0'); ctx.fill();
+      for (let q of particles) {
+        const d = Math.hypot(p.x - q.x, p.y - q.y);
+        if (d < 80) { ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(q.x, q.y); ctx.strokeStyle = `rgba(23,195,178,${0.06 * (1 - d/80)})`; ctx.lineWidth = 0.5; ctx.stroke(); }
+      }
+    }
+    const grd = ctx.createRadialGradient(W/2, H/2, 0, W/2, H/2, W * 0.4);
+    grd.addColorStop(0, 'rgba(14,124,123,0.08)'); grd.addColorStop(1, 'transparent');
+    ctx.fillStyle = grd; ctx.fillRect(0, 0, W, H);
+    t++; requestAnimationFrame(draw);
+  }
+  resize(); window.addEventListener('resize', resize); draw();
+})();
+
+// ===== GLOBE CANVAS =====
+(function() {
+  const canvas = document.getElementById('globe-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height, cx = W/2, cy = H/2, R = W * 0.42;
+  let rotation = 0;
+  const continents = [
+    [[10,20],[10,35],[0,38],[-10,38],[-25,30],[-30,18],[-20,12],[-5,9],[5,2],[10,15],[15,12],[20,15],[25,10],[28,22],[20,25]],
+    [[45,5],[50,15],[55,20],[60,25],[65,28],[60,30],[50,40],[42,28],[38,23],[40,15]],
+    [[65,35],[70,50],[68,70],[65,90],[60,110],[55,120],[45,130],[35,135],[25,120],[15,110],[20,95],[30,90],[35,75],[40,60],[45,50],[55,40]],
+    [[60,-120],[55,-130],[40,-125],[25,-110],[10,-85],[0,-78],[-15,-75],[-40,-65],[-55,-70],[-60,-65],[-40,-60],[-20,-40],[-5,-35],[10,-60],[20,-90],[35,-115],[50,-120]],
+    [[-15,130],[-20,145],[-30,150],[-38,146],[-38,140],[-32,130],[-22,113],[-17,120]]
+  ];
+  function latLonToXY(lat, lon, rot) {
+    const phi = (90 - lat) * Math.PI / 180, theta = (lon + rot) * Math.PI / 180;
+    const x3 = R * Math.sin(phi) * Math.cos(theta), y3 = R * Math.cos(phi), z3 = R * Math.sin(phi) * Math.sin(theta);
+    return { x: cx + x3, y: cy - y3, z: z3 };
+  }
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+    const oceanGrd = ctx.createRadialGradient(cx - R * 0.3, cy - R * 0.3, 0, cx, cy, R);
+    oceanGrd.addColorStop(0, '#1a6b8a'); oceanGrd.addColorStop(0.5, '#0a3d62'); oceanGrd.addColorStop(1, '#020d1a');
+    ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI * 2); ctx.fillStyle = oceanGrd; ctx.fill();
+    for (let lat = -80; lat <= 80; lat += 20) {
+      ctx.beginPath(); let first = true;
+      for (let lon = -180; lon <= 180; lon += 5) { const p = latLonToXY(lat, lon, rotation); if (p.z < 0) { first = true; continue; } if (first) { ctx.moveTo(p.x, p.y); first = false; } else ctx.lineTo(p.x, p.y); }
+      ctx.strokeStyle = 'rgba(72,202,228,0.08)'; ctx.lineWidth = 0.5; ctx.stroke();
+    }
+    for (let lon = -180; lon <= 180; lon += 20) {
+      ctx.beginPath(); let first = true;
+      for (let lat = -90; lat <= 90; lat += 5) { const p = latLonToXY(lat, lon, rotation); if (p.z < 0) { first = true; continue; } if (first) { ctx.moveTo(p.x, p.y); first = false; } else ctx.lineTo(p.x, p.y); }
+      ctx.strokeStyle = 'rgba(72,202,228,0.06)'; ctx.lineWidth = 0.5; ctx.stroke();
+    }
+    for (let cont of continents) {
+      ctx.beginPath(); let started = false;
+      for (let [lat, lon] of cont) { const p = latLonToXY(lat, lon, rotation); if (p.z < 0) continue; if (!started) { ctx.moveTo(p.x, p.y); started = true; } else ctx.lineTo(p.x, p.y); }
+      if (started) { ctx.closePath(); ctx.fillStyle = 'rgba(23,195,178,0.3)'; ctx.fill(); ctx.strokeStyle = 'rgba(72,202,228,0.5)'; ctx.lineWidth = 0.8; ctx.stroke(); }
+    }
+    const atmoGrd = ctx.createRadialGradient(cx, cy, R * 0.85, cx, cy, R * 1.1);
+    atmoGrd.addColorStop(0, 'transparent'); atmoGrd.addColorStop(0.5, 'rgba(23,195,178,0.04)'); atmoGrd.addColorStop(1, 'rgba(72,202,228,0.08)');
+    ctx.beginPath(); ctx.arc(cx, cy, R * 1.05, 0, Math.PI * 2); ctx.fillStyle = atmoGrd; ctx.fill();
+    const specGrd = ctx.createRadialGradient(cx - R*0.35, cy - R*0.35, 0, cx, cy, R);
+    specGrd.addColorStop(0, 'rgba(200,240,255,0.25)'); specGrd.addColorStop(0.4, 'transparent');
+    ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI * 2); ctx.fillStyle = specGrd; ctx.fill();
+    ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI * 2); ctx.clip();
+    rotation += 0.15; requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+// ===== WAVE CANVAS =====
+(function() {
+  const canvas = document.getElementById('wave-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  let W, H;
+  function resize() { W = canvas.width = canvas.offsetWidth; H = canvas.height = canvas.offsetHeight; }
+  resize(); window.addEventListener('resize', resize);
+  let t = 0;
+  const waves = [
+    { amp: 40, freq: 0.012, speed: 0.025, color: 'rgba(14,124,123,0.25)', y: 0.55 },
+    { amp: 30, freq: 0.018, speed: 0.035, color: 'rgba(23,195,178,0.15)', y: 0.6 },
+    { amp: 25, freq: 0.025, speed: 0.02, color: 'rgba(72,202,228,0.12)', y: 0.5 },
+    { amp: 50, freq: 0.008, speed: 0.015, color: 'rgba(10,37,64,0.6)', y: 0.65 },
+  ];
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+    const bg = ctx.createLinearGradient(0, 0, 0, H);
+    bg.addColorStop(0, '#020d1a'); bg.addColorStop(1, '#0a2540');
+    ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
+    for (let w of waves) {
+      ctx.beginPath(); ctx.moveTo(0, H);
+      for (let x = 0; x <= W; x += 4) {
+        const y = w.y * H + Math.sin(x * w.freq + t * w.speed * 100) * w.amp + Math.sin(x * w.freq * 2.3 + t * w.speed * 70) * w.amp * 0.4;
+        ctx.lineTo(x, y);
+      }
+      ctx.lineTo(W, H); ctx.closePath(); ctx.fillStyle = w.color; ctx.fill();
+    }
+    t++; requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+// ===== SCROLL ANIMATIONS =====
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) { entry.target.classList.add('visible'); if (entry.target.classList.contains('stat-card')) animateCounter(entry.target); }
+  });
+}, { threshold: 0.1 });
+document.querySelectorAll('.stat-card, .tip-card').forEach(el => observer.observe(el));
+
+function animateCounter(card) {
+  const el = card.querySelector('.counter-val');
+  if (!el || el.animated) return; el.animated = true;
+  const target = parseFloat(el.dataset.target);
+  const isFloat = target % 1 !== 0;
+  let current = 0; const duration = 1800; const start = performance.now();
+  function step(now) {
+    const elapsed = now - start, progress = Math.min(elapsed / duration, 1), ease = 1 - Math.pow(1 - progress, 4);
+    current = target * ease;
+    el.textContent = isFloat ? current.toFixed(1) : Math.floor(current).toLocaleString();
+    if (progress < 1) requestAnimationFrame(step); else el.textContent = isFloat ? target.toFixed(1) : target.toLocaleString();
+  }
+  requestAnimationFrame(step);
+}
+
+// ===== PARALLAX =====
+window.addEventListener('scroll', () => {
+  const scrollY = window.scrollY;
+  const hero = document.querySelector('.hero-content');
+  if (hero) hero.style.transform = `translateY(${scrollY * 0.25}px)`;
+});
+
+// ===== HOVER GLOW ON TIPS =====
+document.querySelectorAll('.tip-card').forEach(card => {
+  card.addEventListener('mousemove', e => {
+    const r = card.getBoundingClientRect();
+    card.style.background = `radial-gradient(circle at ${e.clientX - r.left}px ${e.clientY - r.top}px, rgba(14,124,123,0.2), rgba(10,37,64,0.8) 60%)`;
+  });
+  card.addEventListener('mouseleave', () => { card.style.background = ''; });
+});
+
+// ===== INIT =====
+updateNavState();
+const user = loadUser();
+if (user && user.isLoggedIn) {
+  const p = loadProgress();
+  setTimeout(() => showToast('Welcome back, ' + user.name.split(' ')[0] + '!', 'You have ' + p.xp.toLocaleString() + ' XP accumulated.', ''), 1200);
+}
+</script>
+</body>
+</html>
